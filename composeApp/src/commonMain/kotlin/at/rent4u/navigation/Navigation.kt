@@ -15,7 +15,7 @@ import at.rent4u.screens.ProfileScreen
 
 @Composable
 fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.ToolList.route) {
+    NavHost(navController = navController, startDestination = Screen.Login.route) {
 
         composable(Screen.ToolList.route) {
             ToolListScreen(navController)
@@ -34,7 +34,7 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         }
 
         composable(Screen.Login.route) {
-            LoginScreen()
+            LoginScreen(navController)
         }
 
         composable(Screen.Profile.route) {
