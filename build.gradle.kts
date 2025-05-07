@@ -6,4 +6,11 @@ plugins {
     alias(libs.plugins.composeMultiplatform) apply false
     alias(libs.plugins.composeCompiler) apply false
     alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinAndroid) apply false
+}
+
+buildscript {
+    dependencies {
+        classpath("com.google.gms:google-services:4.4.1")
+    }
 }

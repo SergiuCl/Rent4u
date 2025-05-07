@@ -12,10 +12,11 @@ import at.rent4u.screens.BookingScreen
 import at.rent4u.screens.AdminToolEditorScreen
 import at.rent4u.screens.LoginScreen
 import at.rent4u.screens.ProfileScreen
+import at.rent4u.screens.RegisterScreen
 
 @Composable
 fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Screen.ToolList.route) {
+    NavHost(navController = navController, startDestination = Screen.Login.route) {
 
         composable(Screen.ToolList.route) {
             ToolListScreen(navController)
@@ -34,11 +35,15 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         }
 
         composable(Screen.Login.route) {
-            LoginScreen()
+            LoginScreen(navController)
         }
 
         composable(Screen.Profile.route) {
             ProfileScreen()
+        }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(navController)
         }
     }
 }
