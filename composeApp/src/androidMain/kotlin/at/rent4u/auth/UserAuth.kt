@@ -1,5 +1,6 @@
 package at.rent4u.auth
 
+import at.rent4u.logging.logMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.ktx.firestore
@@ -32,11 +33,11 @@ actual class UserAuth actual constructor() {
             true
         } catch (e: FirebaseAuthUserCollisionException) {
             // Email already exists
-            println("Error: Email already in use")
+            logMessage("Registration", "Email already in use")
             false
         } catch (e: Exception) {
             // Any other error
-            println("Registration failed: ${e.message}")
+            logMessage("Registration", "Registration failed: ${e.message}")
             false
         }
     }

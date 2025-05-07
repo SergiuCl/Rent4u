@@ -17,8 +17,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.navigation.NavController
-import at.rent4u.getPlatform
 import at.rent4u.auth.UserAuth
+import at.rent4u.logging.logMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -211,9 +211,9 @@ fun RegisterScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(onClick = {
-                // Optional: wrap in coroutine scope if needed
                 CoroutineScope(Dispatchers.Main).launch {
-                    val result = UserAuth().registerUser(
+                    val userAuth = UserAuth() // your actual/expect class
+                    val success = userAuth.registerUser(
                         email = email,
                         password = password,
                         username = username,
@@ -221,16 +221,20 @@ fun RegisterScreen(navController: NavController) {
                         lastName = lastName,
                         phone = phoneNumber
                     )
-                    if (result) {
-                        navController.navigate(Screen.Login.route)
+
+                    logMessage("Registration", "Registration success: $success")
+                    if (success) {
+                        navController.navigate(Screen.ToolList.route) {
+                            popUpTo(Screen.Register.route) { inclusive = true }
+                        }
                     } else {
-                        println("Registration failed")
+                        // TODO TOAST not working?
+                        // Toast.makeText(LocalContext.current, "Registration failed", Toast.LENGTH_LONG).show()
                     }
                 }
             }) {
                 Text("Register")
             }
-
 
             Spacer(modifier = Modifier.height(16.dp))
 
