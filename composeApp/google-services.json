@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "82933096534",
+    "project_id": "rent4u-55fca",
+    "storage_bucket": "rent4u-55fca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:82933096534:android:a7c2b32f9a0e39517a5bf7",
+        "android_client_info": {
+          "package_name": "at.rent4u"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUUwz1dDCHsVygjfppBK_fWQqjBJxEcls"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
