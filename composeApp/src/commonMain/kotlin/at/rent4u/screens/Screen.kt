@@ -9,4 +9,5 @@ sealed class Screen(val route: String) {
     object AdminToolEditor : Screen("admin_tool_editor")
     object Login : Screen("login")
     object Profile : Screen("profile")
+    object Register : Screen("register")
 }
