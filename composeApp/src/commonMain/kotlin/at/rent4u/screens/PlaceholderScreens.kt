@@ -17,6 +17,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.navigation.NavController
+import at.rent4u.getPlatform
+import at.rent4u.auth.UserAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun ToolListScreen(navController: NavController) {
@@ -206,10 +211,26 @@ fun RegisterScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(onClick = {
-                // TODO: Registration logic
+                // Optional: wrap in coroutine scope if needed
+                CoroutineScope(Dispatchers.Main).launch {
+                    val result = UserAuth().registerUser(
+                        email = email,
+                        password = password,
+                        username = username,
+                        firstName = firstName,
+                        lastName = lastName,
+                        phone = phoneNumber
+                    )
+                    if (result) {
+                        navController.navigate(Screen.Login.route)
+                    } else {
+                        println("Registration failed")
+                    }
+                }
             }) {
                 Text("Register")
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
