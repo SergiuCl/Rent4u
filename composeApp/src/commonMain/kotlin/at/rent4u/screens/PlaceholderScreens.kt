@@ -1,5 +1,6 @@
 package at.rent4u.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
@@ -18,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import at.rent4u.auth.UserAuth
 import at.rent4u.logging.logMessage
@@ -135,6 +138,7 @@ fun RegisterScreen(navController: NavController) {
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var showToastMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -214,8 +218,9 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = {
+            Button(enabled = !isLoading, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
+                    isLoading = true
                     val userAuth = UserAuth()
                     val success = userAuth.registerUser(
                         email = email,
@@ -225,6 +230,8 @@ fun RegisterScreen(navController: NavController) {
                         lastName = lastName,
                         phone = phoneNumber
                     )
+
+                    isLoading = false
 
                     logMessage("Registration", "Registration success: $success")
                     if (success) {
@@ -250,9 +257,25 @@ fun RegisterScreen(navController: NavController) {
         }
     }
 
+    if (isLoading) {
+        addScreenLoader()
+    }
+
     // Observe the state and show the toast when the message is not null
     showToastMessage?.let { message ->
         showToast(message)
         showToastMessage = null
+    }
+}
+
+@Composable
+fun addScreenLoader() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f)),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
