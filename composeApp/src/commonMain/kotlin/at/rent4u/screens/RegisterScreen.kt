@@ -40,6 +40,15 @@ fun RegisterScreen(navController: NavController) {
     var showToastMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
+    val isFormValid = email.isNotBlank()
+            && password.isNotBlank()
+            && username.isNotBlank()
+            && confirmPassword.isNotBlank()
+
+    val isPhoneNumberValid = phoneNumber.isNotBlank() && phoneNumber.all { it.isDigit() }
+    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
+    val isEmailValid = email.matches(emailRegex)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -118,9 +127,23 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(enabled = !isLoading, onClick = {
+            Button(enabled = !isLoading && isFormValid, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
+                    if (password != confirmPassword) {
+                        showToastMessage = "Passwords do not match"
+                        return@launch
+                    }
+                    if (!isPhoneNumberValid) {
+                        showToastMessage = "Invalid phone number"
+                        return@launch
+                    }
+                    if (!isEmailValid) {
+                        showToastMessage = "Invalid email address"
+                        return@launch
+                    }
+
                     isLoading = true
+
                     val userAuth = UserAuth()
                     val success = userAuth.registerUser(
                         email = email,
