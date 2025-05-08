@@ -249,7 +249,7 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = {
+            TextButton(enabled = !isLoading, onClick = {
                 navController.popBackStack()
             }) {
                 Text("Already have an account? Login")
