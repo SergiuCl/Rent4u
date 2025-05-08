@@ -145,7 +145,7 @@ fun RegisterScreen(navController: NavController) {
                     isLoading = true
 
                     val userAuth = UserAuth()
-                    val success = userAuth.registerUser(
+                    val (success, errorMessage) = userAuth.registerUser(
                         email = email,
                         password = password,
                         username = username,
@@ -163,7 +163,10 @@ fun RegisterScreen(navController: NavController) {
                         }
                     } else {
                         // Update the state to trigger the toast
-                        showToastMessage = "Registration failed"
+                        showToastMessage = when (errorMessage) {
+                            "Err.mail.taken" -> "Email address is already in use"
+                            else -> "Registration failed"
+                        }
                     }
                 }
             }) {

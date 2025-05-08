@@ -8,10 +8,10 @@ actual class UserAuth actual constructor() {
         firstName: String,
         lastName: String,
         phone: String
-    ): Boolean {
+    ): Pair<Boolean, String?> {
         // Stubbed out — you can implement this later with Ktor or native libs
         println("iOS not implemented yet.")
-        return false
+        return false to "iOS not implemented yet."
     }
 
     actual suspend fun loginUser(email: String, password: String): Boolean {
