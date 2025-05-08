@@ -33,6 +33,9 @@ fun LoginScreen(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showToastMessage by remember { mutableStateOf<String?>(null) }
+    val isEmailValid = validateEmail(email)
+    val isFormValid = email.isNotBlank()
+            && password.isNotBlank()
 
     Box(
         modifier = Modifier
@@ -63,8 +66,13 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(enabled = !isLoading, onClick = {
+            Button(enabled = !isLoading && isFormValid, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
+                    if (!isEmailValid) {
+                        showToastMessage = "Invalid email address"
+                        return@launch
+                    }
+
                     isLoading = true
 
                     val userAuth = UserAuth()

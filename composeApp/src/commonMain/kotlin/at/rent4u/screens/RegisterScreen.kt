@@ -46,8 +46,7 @@ fun RegisterScreen(navController: NavController) {
             && confirmPassword.isNotBlank()
 
     val isPhoneNumberValid = phoneNumber.isNotBlank() && phoneNumber.all { it.isDigit() }
-    val emailRegex = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
-    val isEmailValid = email.matches(emailRegex)
+    val isEmailValid = validateEmail(email)
 
     Box(
         modifier = Modifier
