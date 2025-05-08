@@ -16,9 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import at.rent4u.auth.UserAuth
 import at.rent4u.logging.logMessage
+import at.rent4u.utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -131,6 +134,7 @@ fun RegisterScreen(navController: NavController) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var showToastMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -212,7 +216,7 @@ fun RegisterScreen(navController: NavController) {
 
             Button(onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val userAuth = UserAuth() // your actual/expect class
+                    val userAuth = UserAuth()
                     val success = userAuth.registerUser(
                         email = email,
                         password = password,
@@ -228,8 +232,8 @@ fun RegisterScreen(navController: NavController) {
                             popUpTo(Screen.Register.route) { inclusive = true }
                         }
                     } else {
-                        // TODO TOAST not working?
-                        // Toast.makeText(LocalContext.current, "Registration failed", Toast.LENGTH_LONG).show()
+                        // Update the state to trigger the toast
+                        showToastMessage = "Registration failed"
                     }
                 }
             }) {
@@ -244,5 +248,11 @@ fun RegisterScreen(navController: NavController) {
                 Text("Already have an account? Login")
             }
         }
+    }
+
+    // Observe the state and show the toast when the message is not null
+    showToastMessage?.let { message ->
+        showToast(message)
+        showToastMessage = null
     }
 }
