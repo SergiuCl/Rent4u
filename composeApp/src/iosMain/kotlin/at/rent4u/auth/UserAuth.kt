@@ -13,4 +13,10 @@ actual class UserAuth actual constructor() {
         println("iOS not implemented yet.")
         return false
     }
+
+    actual suspend fun loginUser(email: String, password: String): Boolean {
+        // Stubbed out — you can implement this later with Ktor or native libs
+        println("iOS not implemented yet.")
+        return false
+    }
 }

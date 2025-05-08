@@ -48,4 +48,17 @@ actual class UserAuth actual constructor() {
             false
         }
     }
+
+    actual suspend fun loginUser(email: String, password: String): Boolean {
+        return try {
+            val auth = FirebaseAuth.getInstance()
+            auth.signInWithEmailAndPassword(email, password).await()
+
+            logMessage("Login", "Login successful for $email")
+            true
+        } catch (e: Exception) {
+            logMessage("Login", "Login failed: ${e.message}")
+            false
+        }
+    }
 }

@@ -9,4 +9,9 @@ expect class UserAuth() {
         lastName: String,
         phone: String
     ): Boolean
+
+    suspend fun loginUser(
+        email: String,
+        password: String
+    ): Boolean
 }

@@ -70,8 +70,10 @@ fun ToolDetailsScreen(toolId: String = "-1") {
 
 @Composable
 fun LoginScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    var showToastMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -79,16 +81,14 @@ fun LoginScreen(navController: NavController) {
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Welcome Back", style = MaterialTheme.typography.h5)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
                 singleLine = true
             )
 
@@ -104,20 +104,47 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = { /* will implement login later */ }) {
+            Button(enabled = !isLoading, onClick = {
+                CoroutineScope(Dispatchers.Main).launch {
+                    isLoading = true
+
+                    val userAuth = UserAuth()
+                    val success = userAuth.loginUser(email, password)
+
+                    isLoading = false
+
+                    if (success) {
+                        navController.navigate(Screen.ToolList.route) {
+                            popUpTo(Screen.Login.route) { inclusive = true }
+                        }
+                    } else {
+                        showToastMessage = "Login failed. Please try again."
+                    }
+                }
+            }) {
                 Text("Login")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = {
+            TextButton(enabled = !isLoading, onClick = {
                 navController.navigate(Screen.Register.route)
             }) {
                 Text("Don't have an account? Register")
             }
         }
     }
+
+    if (isLoading) {
+        addScreenLoader()
+    }
+
+    showToastMessage?.let {
+        showToast(it)
+        showToastMessage = null
+    }
 }
+
 
 @Composable fun ProfileScreen() {
     Box(
