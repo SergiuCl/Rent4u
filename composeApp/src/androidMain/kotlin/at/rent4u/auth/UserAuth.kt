@@ -19,7 +19,12 @@ actual class UserAuth actual constructor() {
         return try {
             val auth = FirebaseAuth.getInstance()
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid ?: return false
+            val uid = result.user?.uid ?: run {
+                logMessage("Registration", "UID is null")
+                return false
+            }
+
+            logMessage("Registration", "Got UID: $uid — writing to Firestore")
 
             val userData = hashMapOf(
                 "username" to username,
@@ -30,6 +35,8 @@ actual class UserAuth actual constructor() {
             )
 
             Firebase.firestore.collection("users").document(uid).set(userData).await()
+
+            logMessage("Registration", "Registration and Firestore write successful")
             true
         } catch (e: FirebaseAuthUserCollisionException) {
             // Email already exists
