@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,8 +48,8 @@ fun BottomNavBar(navController: NavController) {
 
     BottomAppBar(
         backgroundColor = MaterialTheme.colors.primary,
-        cutoutShape = null,
-        elevation = 8.dp
+        elevation = 8.dp,
+        contentPadding = PaddingValues(horizontal = 0.dp)
     ) {
         Box(
             modifier = Modifier
@@ -68,7 +69,7 @@ fun BottomNavBar(navController: NavController) {
                 },
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 16.dp)
+                    .padding(start = 20.dp)
             )
 
             // Right-aligned Profile
@@ -84,7 +85,7 @@ fun BottomNavBar(navController: NavController) {
                 },
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 16.dp)
+                    .padding(end = 20.dp)
             )
         }
     }

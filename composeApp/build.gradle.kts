@@ -84,6 +84,7 @@ android {
 
 dependencies {
     implementation(libs.firebase.common.ktx)
+    implementation(libs.androidx.material3.android)
     debugImplementation(compose.uiTooling)
 }
 
