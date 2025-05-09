@@ -45,5 +45,9 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         composable(Screen.Register.route) {
             RegisterScreen(navController)
         }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(navController)
+        }
     }
 }
