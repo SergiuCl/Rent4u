@@ -14,4 +14,6 @@ expect class UserAuth() {
         email: String,
         password: String
     ): Boolean
+
+    fun logoutUser()
 }

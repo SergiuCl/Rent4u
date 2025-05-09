@@ -56,4 +56,8 @@ actual class UserAuth actual constructor() {
             false
         }
     }
+
+    actual fun logoutUser() {
+        FirebaseAuth.getInstance().signOut()
+    }
 }

@@ -19,4 +19,9 @@ actual class UserAuth actual constructor() {
         println("iOS not implemented yet.")
         return false
     }
+
+    actual fun logoutUser() {
+        // Stubbed out — you can implement this later with Ktor or native libs
+        println("iOS not implemented yet.")
+    }
 }
