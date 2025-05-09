@@ -39,6 +39,7 @@ kotlin {
             implementation("com.google.firebase:firebase-auth-ktx:22.3.1")
             implementation("com.google.firebase:firebase-firestore-ktx:24.10.2")
             implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+            implementation("com.google.firebase:firebase-firestore-ktx")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -83,6 +84,7 @@ android {
 
 dependencies {
     implementation(libs.firebase.common.ktx)
+    implementation(libs.androidx.material3.android)
     debugImplementation(compose.uiTooling)
 }
 

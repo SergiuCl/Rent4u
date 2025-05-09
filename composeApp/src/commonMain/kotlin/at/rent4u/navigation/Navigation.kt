@@ -23,15 +23,15 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         }
 
         composable(Screen.ToolDetails.route) {
-            ToolDetailsScreen()
+            ToolDetailsScreen(navController)
         }
 
         composable(Screen.Booking.route) {
-            BookingScreen()
+            BookingScreen(navController)
         }
 
         composable(Screen.AdminToolEditor.route) {
-            AdminToolEditorScreen()
+            AdminToolEditorScreen(navController)
         }
 
         composable(Screen.Login.route) {
@@ -39,7 +39,11 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen()
+            ProfileScreen(navController)
+        }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(navController)
         }
 
         composable(Screen.Register.route) {

@@ -4,126 +4,36 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.*
 import androidx.navigation.NavController
 import at.rent4u.auth.UserAuth
 import at.rent4u.logging.logMessage
+import at.rent4u.utils.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun ToolListScreen(navController: NavController) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Tool List Screen")
-    }
-    // Example: Navigate on click
-    // Button(onClick = { navController.navigate(Screen.ToolDetails("tool123")) }) { Text("Go to Details") }
-}
-
-@Composable
-fun ToolDetailsScreen(toolId: String = "-1") {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Tool Details Screen for Tool ID: $toolId")
-    }
-}
-
-@Composable fun BookingScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Booking Screen")
-    }
-}
-@Composable fun AdminToolEditorScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Admin Tool Editor Screen")
-    }
-}
-
-@Composable
-fun LoginScreen(navController: NavController) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Welcome Back", style = MaterialTheme.typography.h5)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                label = { Text("Username") },
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation()
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(onClick = { /* will implement login later */ }) {
-                Text("Login")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextButton(onClick = {
-                navController.navigate(Screen.Register.route)
-            }) {
-                Text("Don't have an account? Register")
-            }
-        }
-    }
-}
-
-@Composable fun ProfileScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text("Profile Screen")
-    }
-}
-
-@Composable
 fun RegisterScreen(navController: NavController) {
+    val scrollState = rememberScrollState()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -131,6 +41,16 @@ fun RegisterScreen(navController: NavController) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var showToastMessage by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val isFormValid = email.isNotBlank()
+            && password.isNotBlank()
+            && username.isNotBlank()
+            && confirmPassword.isNotBlank()
+
+    val isPhoneNumberValid = phoneNumber.isNotBlank() && phoneNumber.all { it.isDigit() }
+    val isEmailValid = validateEmail(email)
 
     Box(
         modifier = Modifier
@@ -139,7 +59,10 @@ fun RegisterScreen(navController: NavController) {
         contentAlignment = Alignment.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
         ) {
             Text("Create Account", style = MaterialTheme.typography.h5)
 
@@ -210,10 +133,25 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Button(onClick = {
+            Button(enabled = !isLoading && isFormValid, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val userAuth = UserAuth() // your actual/expect class
-                    val success = userAuth.registerUser(
+                    if (password != confirmPassword) {
+                        showToastMessage = "Passwords do not match"
+                        return@launch
+                    }
+                    if (!isPhoneNumberValid) {
+                        showToastMessage = "Invalid phone number"
+                        return@launch
+                    }
+                    if (!isEmailValid) {
+                        showToastMessage = "Invalid email address"
+                        return@launch
+                    }
+
+                    isLoading = true
+
+                    val userAuth = UserAuth()
+                    val (success, errorMessage) = userAuth.registerUser(
                         email = email,
                         password = password,
                         username = username,
@@ -222,14 +160,19 @@ fun RegisterScreen(navController: NavController) {
                         phone = phoneNumber
                     )
 
+                    isLoading = false
+
                     logMessage("Registration", "Registration success: $success")
                     if (success) {
                         navController.navigate(Screen.ToolList.route) {
                             popUpTo(Screen.Register.route) { inclusive = true }
                         }
                     } else {
-                        // TODO TOAST not working?
-                        // Toast.makeText(LocalContext.current, "Registration failed", Toast.LENGTH_LONG).show()
+                        // Update the state to trigger the toast
+                        showToastMessage = when (errorMessage) {
+                            "Err.mail.taken" -> "Email address is already in use"
+                            else -> "Registration failed"
+                        }
                     }
                 }
             }) {
@@ -238,11 +181,21 @@ fun RegisterScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = {
+            TextButton(enabled = !isLoading, onClick = {
                 navController.popBackStack()
             }) {
                 Text("Already have an account? Login")
             }
         }
+    }
+
+    if (isLoading) {
+        addScreenLoader()
+    }
+
+    // Observe the state and show the toast when the message is not null
+    showToastMessage?.let { message ->
+        showToast(message)
+        showToastMessage = null
     }
 }

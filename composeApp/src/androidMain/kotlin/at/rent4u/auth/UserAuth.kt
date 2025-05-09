@@ -15,11 +15,16 @@ actual class UserAuth actual constructor() {
         firstName: String,
         lastName: String,
         phone: String
-    ): Boolean {
+    ): Pair<Boolean, String?> {
         return try {
             val auth = FirebaseAuth.getInstance()
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid ?: return false
+            val uid = result.user?.uid ?: run {
+                logMessage("Registration", "UID is null")
+                return false to "Err.general"
+            }
+
+            logMessage("Registration", "Got UID: $uid — writing to Firestore")
 
             val userData = hashMapOf(
                 "username" to username,
@@ -30,15 +35,29 @@ actual class UserAuth actual constructor() {
             )
 
             Firebase.firestore.collection("users").document(uid).set(userData).await()
-            true
+
+            true to null
         } catch (e: FirebaseAuthUserCollisionException) {
-            // Email already exists
-            logMessage("Registration", "Email already in use")
-            false
+            false to "Err.mail.taken"
         } catch (e: Exception) {
-            // Any other error
-            logMessage("Registration", "Registration failed: ${e.message}")
+            false to "Err.general"
+        }
+    }
+
+    actual suspend fun loginUser(email: String, password: String): Boolean {
+        return try {
+            val auth = FirebaseAuth.getInstance()
+            auth.signInWithEmailAndPassword(email, password).await()
+
+            logMessage("Login", "Login successful for $email")
+            true
+        } catch (e: Exception) {
+            logMessage("Login", "Login failed: ${e.message}")
             false
         }
+    }
+
+    actual fun logoutUser() {
+        FirebaseAuth.getInstance().signOut()
     }
 }

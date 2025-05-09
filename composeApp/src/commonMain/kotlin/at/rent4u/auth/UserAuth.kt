@@ -8,5 +8,12 @@ expect class UserAuth() {
         firstName: String,
         lastName: String,
         phone: String
+    ): Pair<Boolean, String?>
+
+    suspend fun loginUser(
+        email: String,
+        password: String
     ): Boolean
+
+    fun logoutUser()
 }
