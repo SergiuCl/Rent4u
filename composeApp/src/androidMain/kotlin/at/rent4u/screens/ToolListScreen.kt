@@ -38,6 +38,8 @@ import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
 
+// TODO - add a button to load next items. At first show only the first 10 items.
+
 @Composable
 fun ToolListScreen(navController: NavController) {
 
@@ -85,53 +87,68 @@ fun ToolListScreen(navController: NavController) {
 }
 
 @Composable
-fun ToolListItem(tool: Tool, onClick: () -> Unit) {
+fun ToolListItem(
+    tool: Tool,
+    onClick: () -> Unit
+) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable { onClick() }
+                .padding(vertical = 12.dp)
                 .padding(horizontal = 12.dp)
         ) {
-            AsyncImage(
-                model = tool.image,
-                contentDescription = "Tool Image",
-                modifier = Modifier
-                    .size(120.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AsyncImage(
+                    model = tool.image,
+                    contentDescription = "Tool Image",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
 
-            Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
-            Column(modifier = Modifier.alignByBaseline()) {
-                Text(tool.brand, style = MaterialTheme.typography.titleMedium)
-                Text(tool.type, style = MaterialTheme.typography.bodyMedium)
+                Column(modifier = Modifier.alignByBaseline()) {
+                    Text(tool.brand, style = MaterialTheme.typography.titleMedium)
+                    Text(tool.type, style = MaterialTheme.typography.bodyMedium)
 
-                // Availability Row with colored indicator
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val statusColor = if (tool.availabilityStatus.equals("available", ignoreCase = true)) {
-                        Color(0xFF4CAF50) // Green
-                    } else {
-                        Color(0xFFF44336) // Red
+                    // Availability Row with colored indicator
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val statusColor = if (tool.availabilityStatus.equals("available", ignoreCase = true)) {
+                            Color(0xFF4CAF50) // Green
+                        } else {
+                            Color(0xFFF44336) // Red
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(statusColor)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(tool.availabilityStatus, style = MaterialTheme.typography.bodyMedium)
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(statusColor)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(tool.availabilityStatus, style = MaterialTheme.typography.bodyMedium)
+                    val cleanPrice = tool.rentalRate.replace("€", "").trim()
+                    Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
                 }
-
-                val cleanPrice = tool.rentalRate.replace("€", "").trim()
-                Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color.Gray)
+        )
     }
 }
