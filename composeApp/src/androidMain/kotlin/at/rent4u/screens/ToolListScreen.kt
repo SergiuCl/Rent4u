@@ -77,7 +77,7 @@ fun ToolListScreen(navController: NavController) {
                 .padding(16.dp)
         ) {
             tools.forEach { (id, tool) ->
-                ToolListItem(tool = tool) {
+                ToolListItem(tool = tool, isLastItem = id == tools.lastOrNull()?.first) {
                     navController.navigate(Screen.ToolDetails.createRoute(id))
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -89,6 +89,7 @@ fun ToolListScreen(navController: NavController) {
 @Composable
 fun ToolListItem(
     tool: Tool,
+    isLastItem: Boolean = false,
     onClick: () -> Unit
 ) {
     Column(
@@ -144,11 +145,14 @@ fun ToolListItem(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.Gray)
-        )
+        // show bottom border only if not the last item in the list
+        if (!isLastItem) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.Gray)
+            )
+        }
     }
 }
