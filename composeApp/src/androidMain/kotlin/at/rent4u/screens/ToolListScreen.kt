@@ -1,6 +1,8 @@
 package at.rent4u.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
@@ -83,29 +86,52 @@ fun ToolListScreen(navController: NavController) {
 
 @Composable
 fun ToolListItem(tool: Tool, onClick: () -> Unit) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(12.dp)
+            .padding(vertical = 12.dp)
     ) {
-        AsyncImage(
-            model = tool.image,
-            contentDescription = "Tool Image",
+        Row(
             modifier = Modifier
-                .size(120.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+        ) {
+            AsyncImage(
+                model = tool.image,
+                contentDescription = "Tool Image",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
 
-        Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-        Column {
-            Text(tool.brand, style = MaterialTheme.typography.titleMedium)
-            Text(tool.type, style = MaterialTheme.typography.bodyMedium)
-            Text(tool.availabilityStatus, style = MaterialTheme.typography.bodyMedium)
+            Column(modifier = Modifier.alignByBaseline()) {
+                Text(tool.brand, style = MaterialTheme.typography.titleMedium)
+                Text(tool.type, style = MaterialTheme.typography.bodyMedium)
 
-            val cleanPrice = tool.rentalRate.replace("€", "").trim()
-            Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
+                // Availability Row with colored indicator
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val statusColor = if (tool.availabilityStatus.equals("available", ignoreCase = true)) {
+                        Color(0xFF4CAF50) // Green
+                    } else {
+                        Color(0xFFF44336) // Red
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(statusColor)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(tool.availabilityStatus, style = MaterialTheme.typography.bodyMedium)
+                }
+
+                val cleanPrice = tool.rentalRate.replace("€", "").trim()
+                Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
 }
