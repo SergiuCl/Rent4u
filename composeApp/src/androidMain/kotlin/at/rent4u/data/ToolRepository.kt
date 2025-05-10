@@ -16,4 +16,17 @@ class ToolRepository @Inject constructor(
             false to e.localizedMessage
         }
     }
+
+    suspend fun getTools(): List<Pair<String, Tool>> {
+        return try {
+            val result = firestore.collection("tools").get().await()
+            result.documents.mapNotNull { doc ->
+                doc.toObject(Tool::class.java)?.let { tool ->
+                    doc.id to tool
+                }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 }

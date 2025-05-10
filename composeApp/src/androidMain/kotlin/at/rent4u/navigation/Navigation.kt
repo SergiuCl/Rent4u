@@ -2,9 +2,11 @@ package at.rent4u.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import at.rent4u.screens.Screen
 import at.rent4u.screens.ToolDetailsScreen
 import at.rent4u.screens.ToolListScreen
@@ -22,8 +24,12 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             ToolListScreen(navController)
         }
 
-        composable(Screen.ToolDetails.route) {
-            ToolDetailsScreen(navController)
+        composable(
+            Screen.ToolDetails.route,
+            arguments = listOf(navArgument("toolId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val toolId = backStackEntry.arguments?.getString("toolId") ?: return@composable
+            ToolDetailsScreen(navController, toolId)
         }
 
         composable(Screen.Booking.route) {

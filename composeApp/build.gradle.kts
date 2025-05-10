@@ -91,6 +91,7 @@ dependencies {
     implementation(libs.firebase.common.ktx)
     implementation(libs.androidx.material3.android)
     debugImplementation(compose.uiTooling)
+    implementation("io.coil-kt:coil-compose:2.7.0")
     add("kspAndroid", libs.hilt.compiler)
 }
 
