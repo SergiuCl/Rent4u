@@ -1,5 +1,7 @@
 package at.rent4u.screens
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,24 +11,25 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import at.rent4u.auth.UserAuth
-import at.rent4u.logging.logMessage
-import at.rent4u.utils.showToast
+import at.rent4u.presentation.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,9 +44,6 @@ fun RegisterScreen(navController: NavController) {
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
-    var showToastMessage by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
-
     val isFormValid = email.isNotBlank()
             && password.isNotBlank()
             && username.isNotBlank()
@@ -51,6 +51,10 @@ fun RegisterScreen(navController: NavController) {
 
     val isPhoneNumberValid = phoneNumber.isNotBlank() && phoneNumber.all { it.isDigit() }
     val isEmailValid = validateEmail(email)
+
+    val viewModel: UserViewModel = hiltViewModel()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val toastMessage by viewModel.toastMessage.collectAsState()
 
     Box(
         modifier = Modifier
@@ -64,7 +68,7 @@ fun RegisterScreen(navController: NavController) {
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
         ) {
-            Text("Create Account", style = MaterialTheme.typography.h5)
+            Text("Create Account", style = MaterialTheme.typography.headlineMedium)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -136,22 +140,19 @@ fun RegisterScreen(navController: NavController) {
             Button(enabled = !isLoading && isFormValid, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
                     if (password != confirmPassword) {
-                        showToastMessage = "Passwords do not match"
+                        viewModel.setToastMessage("Passwords do not match")
                         return@launch
                     }
                     if (!isPhoneNumberValid) {
-                        showToastMessage = "Invalid phone number"
+                        viewModel.setToastMessage("Invalid phone number")
                         return@launch
                     }
                     if (!isEmailValid) {
-                        showToastMessage = "Invalid email address"
+                        viewModel.setToastMessage("Invalid email address")
                         return@launch
                     }
 
-                    isLoading = true
-
-                    val userAuth = UserAuth()
-                    val (success, errorMessage) = userAuth.registerUser(
+                    val (success, errorMessage) = viewModel.register(
                         email = email,
                         password = password,
                         username = username,
@@ -160,19 +161,18 @@ fun RegisterScreen(navController: NavController) {
                         phone = phoneNumber
                     )
 
-                    isLoading = false
-
-                    logMessage("Registration", "Registration success: $success")
+                    Log.d("Registration", "Registration success: $success")
                     if (success) {
                         navController.navigate(Screen.ToolList.route) {
                             popUpTo(Screen.Register.route) { inclusive = true }
                         }
                     } else {
                         // Update the state to trigger the toast
-                        showToastMessage = when (errorMessage) {
+                        val message = when (errorMessage) {
                             "Err.mail.taken" -> "Email address is already in use"
                             else -> "Registration failed"
                         }
+                        viewModel.setToastMessage(message)
                     }
                 }
             }) {
@@ -194,8 +194,8 @@ fun RegisterScreen(navController: NavController) {
     }
 
     // Observe the state and show the toast when the message is not null
-    showToastMessage?.let { message ->
-        showToast(message)
-        showToastMessage = null
+    toastMessage?.let {
+        Toast.makeText(LocalContext.current, it, Toast.LENGTH_LONG).show()
+        viewModel.clearToastMessage()
     }
 }

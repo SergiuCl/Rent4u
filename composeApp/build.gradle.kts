@@ -94,3 +94,6 @@ dependencies {
     add("kspAndroid", libs.hilt.compiler)
 }
 
+hilt {
+    enableAggregatingTask = false
+}

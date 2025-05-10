@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.BottomAppBar
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +47,8 @@ fun BottomNavBar(navController: NavController) {
     val currentRoute = getCurrentRoute(navController)
 
     BottomAppBar(
-        backgroundColor = MaterialTheme.colors.primary,
-        elevation = 8.dp,
+        containerColor = MaterialTheme.colorScheme.primary,
+        tonalElevation = 8.dp,
         contentPadding = PaddingValues(horizontal = 0.dp)
     ) {
         Box(
