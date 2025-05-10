@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -24,8 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
@@ -51,23 +50,20 @@ fun ToolListScreen(navController: NavController) {
         bottomBar = { BottomNavBar(navController) },
         floatingActionButton = {
             if (isAdmin) {
-                Button(
+                FloatingActionButton(
                     onClick = { navController.navigate(Screen.AdminToolEditor.route) },
+                    containerColor = Color.LightGray,
+                    contentColor = Color.Black,
+                    shape = RoundedCornerShape(50),
                     modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(horizontal = 16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.LightGray,
-                        contentColor = Color.Black
-                    )
+                        .padding(16.dp)
+                        .size(56.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = "Add Tool")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add New Tool")
                 }
             }
         },
-        floatingActionButtonPosition = FabPosition.Center
+        floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
         Column(
             modifier = Modifier
