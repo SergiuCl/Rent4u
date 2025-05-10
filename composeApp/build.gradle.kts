@@ -2,12 +2,15 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     id("com.google.gms.google-services")
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -40,6 +43,8 @@ kotlin {
             implementation("com.google.firebase:firebase-firestore-ktx:24.10.2")
             implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
             implementation("com.google.firebase:firebase-firestore-ktx")
+            implementation(libs.hilt.android)
+            implementation(libs.hilt.navigation.compose)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -86,5 +91,6 @@ dependencies {
     implementation(libs.firebase.common.ktx)
     implementation(libs.androidx.material3.android)
     debugImplementation(compose.uiTooling)
+    add("kspAndroid", libs.hilt.compiler)
 }
 
