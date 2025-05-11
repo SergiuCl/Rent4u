@@ -45,9 +45,11 @@ class AdminToolViewModel @Inject constructor(
             _toastMessage.value = "Please enter the availability status"
         }
 
+        val toolWithTimestamp = tool.copy(createdAt = System.currentTimeMillis())
+
         viewModelScope.launch {
             _isLoading.value = true
-            val (success, error) = repository.addTool(tool)
+            val (success, error) = repository.addTool(toolWithTimestamp)
             _isLoading.value = false
 
             if (success) {

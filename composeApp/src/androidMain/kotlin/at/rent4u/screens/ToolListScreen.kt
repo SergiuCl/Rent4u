@@ -18,17 +18,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
@@ -37,14 +43,24 @@ import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
 
-// TODO - add a button to load next items. At first show only the first 10 items.
-
 @Composable
 fun ToolListScreen(navController: NavController) {
 
     val viewModel: ToolListViewModel = hiltViewModel()
     val isAdmin by viewModel.isAdmin.collectAsState()
     val tools by viewModel.tools.collectAsState()
+    val listState = rememberLazyListState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+
+    // watch listState state and react accordingly when it changes
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex == tools.lastIndex) {
+                    viewModel.loadMoreTools()
+                }
+            }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
@@ -65,18 +81,35 @@ fun ToolListScreen(navController: NavController) {
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
         ) {
-            tools.forEach { (id, tool) ->
-                ToolListItem(tool = tool, isLastItem = id == tools.lastOrNull()?.first) {
-                    navController.navigate(Screen.ToolDetails.createRoute(id))
-                }
+            itemsIndexed(tools) { index, (id, tool) ->
+                ToolListItem(
+                    tool = tool,
+                    isLastItem = index == tools.lastIndex,
+                    onClick = {
+                        navController.navigate(Screen.ToolDetails.createRoute(id))
+                    }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            if (isLoadingMore) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
+                }
             }
         }
     }

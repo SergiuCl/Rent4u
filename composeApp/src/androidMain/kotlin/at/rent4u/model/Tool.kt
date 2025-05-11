@@ -1,6 +1,7 @@
 package at.rent4u.model
 
 data class Tool(
+    val createdAt: Long = 0,
     val type: String = "",
     val brand: String = "",
     val modelNumber: String = "",
