@@ -6,12 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.Text
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,9 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,14 +23,21 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
@@ -48,7 +47,7 @@ fun ToolListScreen(navController: NavController) {
 
     val viewModel: ToolListViewModel = hiltViewModel()
     val isAdmin by viewModel.isAdmin.collectAsState()
-    val tools by viewModel.tools.collectAsState()
+    val tools by viewModel.filteredTools.collectAsState()
     val listState = rememberLazyListState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
 
@@ -88,6 +87,12 @@ fun ToolListScreen(navController: NavController) {
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
+
+            item {
+                FilterSection(viewModel)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
             itemsIndexed(tools) { index, (id, tool) ->
                 ToolListItem(
                     tool = tool,
@@ -111,6 +116,54 @@ fun ToolListScreen(navController: NavController) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun FilterSection(viewModel: ToolListViewModel) {
+    val filters by viewModel.filters.collectAsState()
+
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        OutlinedTextField(
+            value = filters.brand,
+            onValueChange = { viewModel.updateFilter { copy(brand = it) } },
+            label = { Text("Brand") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = filters.type,
+            onValueChange = { viewModel.updateFilter { copy(type = it) } },
+            label = { Text("Type") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        DropDownField(
+            label = "Availability",
+            options = listOf("", "available", "unavailable"),
+            selectedValue = filters.availabilityStatus,
+            onChange = { viewModel.updateFilter { copy(availabilityStatus = it) } }
+        )
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = filters.minPriceText,
+                onValueChange = {
+                    viewModel.updateFilter { copy(minPriceText = it) }
+                },
+                label = { Text("Min Price") },
+                modifier = Modifier.weight(1f).padding(end = 4.dp)
+            )
+
+            OutlinedTextField(
+                value = filters.maxPriceText,
+                onValueChange = {
+                    viewModel.updateFilter { copy(maxPriceText = it) }
+                },
+                label = { Text("Max Price") },
+                modifier = Modifier.weight(1f).padding(start = 4.dp)
+            )
         }
     }
 }

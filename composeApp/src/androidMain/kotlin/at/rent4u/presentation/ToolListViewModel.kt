@@ -26,6 +26,12 @@ class ToolListViewModel @Inject constructor(
     private val _isLoadingMore = MutableStateFlow(false)
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
+    private val _filters = MutableStateFlow(ToolFilter())
+    val filters = _filters.asStateFlow()
+
+    private val _filteredTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
+    val filteredTools = _filteredTools.asStateFlow()
+
     private var hasMoreItems = true
 
     init {
@@ -49,8 +55,38 @@ class ToolListViewModel @Inject constructor(
                     .distinctBy { it.first }
             }
 
+            applyFilters()
+
             _isAdmin.value = userRepository.isCurrentUserAdmin()
             _isLoadingMore.value = false
         }
     }
+
+    fun updateFilter(update: ToolFilter.() -> ToolFilter) {
+        _filters.value = _filters.value.update()
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        val minPrice = _filters.value.minPriceText.toDoubleOrNull()
+        val maxPrice = _filters.value.maxPriceText.toDoubleOrNull()
+
+        _filteredTools.value = _tools.value.filter { (_, tool) ->
+            val price = tool.rentalRate.replace("€", "").toDoubleOrNull() ?: return@filter false
+
+            (_filters.value.brand.isBlank() || tool.brand.contains(_filters.value.brand, true)) &&
+                    (_filters.value.type.isBlank() || tool.type.contains(_filters.value.type, true)) &&
+                    (_filters.value.availabilityStatus.isBlank() || tool.availabilityStatus.equals(_filters.value.availabilityStatus, true)) &&
+                    (minPrice == null || price >= minPrice) &&
+                    (maxPrice == null || price <= maxPrice)
+        }
+    }
 }
+
+data class ToolFilter(
+    val brand: String = "",
+    val type: String = "",
+    val availabilityStatus: String = "",
+    val minPriceText: String = "",
+    val maxPriceText: String = ""
+)
