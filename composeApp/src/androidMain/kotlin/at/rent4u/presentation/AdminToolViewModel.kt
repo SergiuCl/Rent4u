@@ -43,6 +43,14 @@ class AdminToolViewModel @Inject constructor(
         }
         if (tool.availabilityStatus.isBlank()) {
             _toastMessage.value = "Please enter the availability status"
+            return
+        }
+
+        val rentalRateString = tool.rentalRate.replace("€", "").trim()
+        val isNumeric = rentalRateString.toDoubleOrNull() != null
+        if (!isNumeric) {
+            _toastMessage.value = "Please enter a valid number for the rental rate."
+            return
         }
 
         val toolWithTimestamp = tool.copy(createdAt = System.currentTimeMillis())
