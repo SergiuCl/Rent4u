@@ -1,7 +1,11 @@
 package at.rent4u.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +21,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -29,7 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.model.Tool
+import at.rent4u.presentation.ToolFilter
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
 
@@ -50,6 +61,8 @@ fun ToolListScreen(navController: NavController) {
     val tools by viewModel.filteredTools.collectAsState()
     val listState = rememberLazyListState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+
+    var showFilters by remember { mutableStateOf(false) }
 
     // watch listState state and react accordingly when it changes
     LaunchedEffect(listState) {
@@ -89,8 +102,55 @@ fun ToolListScreen(navController: NavController) {
         ) {
 
             item {
-                FilterSection(viewModel)
-                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .clickable { showFilters = !showFilters }
+                            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = if (showFilters) "Hide Filters" else "Show Filters",
+                            color = Color.Black
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (showFilters) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                    }
+                }
+            }
+
+            // Add a Spacer here to create space after the button
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            item {
+                AnimatedVisibility(
+                    visible = showFilters,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Column {
+                        FilterSection(viewModel)
+                        Button(
+                            onClick = { viewModel.updateFilter { ToolFilter() } },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Reset Filters")
+                        }
+                    }
+                }
             }
 
             itemsIndexed(tools) { index, (id, tool) ->
