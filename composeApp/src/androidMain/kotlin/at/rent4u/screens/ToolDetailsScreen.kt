@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,46 +36,56 @@ fun ToolDetailsScreen(
     navController: NavController,
     viewModel: ToolListViewModel = hiltViewModel()
 ) {
-    val tool = viewModel.tools.collectAsState().value.find { it.first == toolId }?.second
+    val toolsState = viewModel.tools.collectAsState()
+    val tool = toolsState.value.find { it.first == toolId }?.second
+    val isLoading = toolsState.value.isEmpty()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { innerPadding ->
-        tool?.let {
-            Column(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-            ) {
-                // Image at top
-                AsyncImage(
-                    model = it.image,
-                    contentDescription = "Tool Image",
+        when {
+            isLoading -> {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(240.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Fit
-                )
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
 
-                Spacer(modifier = Modifier.height(24.dp))
+            tool != null -> {
+                Column(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                ) {
+                    AsyncImage(
+                        model = tool.image,
+                        contentDescription = "Tool Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(240.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Fit
+                    )
 
-                // Left-aligned properties
-                InfoRow("Model", it.modelNumber)
-                InfoRow("Description", it.description)
-                InfoRow("Availability", it.availabilityStatus)
-                InfoRow("Power", it.powerSource)
-                InfoRow("Type", it.type)
-                InfoRow("Voltage", it.voltage)
-                InfoRow("Fuel Type", it.fuelType)
-                InfoRow("Weight", it.weight)
-                InfoRow("Dimensions", it.dimensions)
-                InfoRow("Rental rate", it.rentalRate)
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                // Only show button if available
-                if (it.availabilityStatus.equals("available", ignoreCase = true)) {
+                    InfoRow("Model", tool.modelNumber)
+                    InfoRow("Description", tool.description)
+                    InfoRow("Availability", tool.availabilityStatus)
+                    InfoRow("Power", tool.powerSource)
+                    InfoRow("Type", tool.type)
+                    InfoRow("Voltage", tool.voltage)
+                    InfoRow("Fuel Type", tool.fuelType)
+                    InfoRow("Weight", tool.weight)
+                    InfoRow("Dimensions", tool.dimensions)
+                    InfoRow("Rental rate", tool.rentalRate)
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
@@ -93,12 +104,19 @@ fun ToolDetailsScreen(
                         Text("Book this Tool")
                     }
 
-                    Spacer(modifier = Modifier.height(80.dp)) // padding above nav bar
+                    Spacer(modifier = Modifier.height(80.dp))
                 }
             }
-        } ?: run {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Tool not found", style = MaterialTheme.typography.bodyLarge)
+
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Tool not found", style = MaterialTheme.typography.bodyLarge)
+                }
             }
         }
     }
