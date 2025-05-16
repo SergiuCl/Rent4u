@@ -23,6 +23,12 @@ class ToolListViewModel @Inject constructor(
     private val _tools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
     val tools: StateFlow<List<Pair<String, Tool>>> = _tools.asStateFlow()
 
+    private val _singleTool = MutableStateFlow<Pair<String, Tool>?>(null)
+    val singleTool: StateFlow<Pair<String, Tool>?> = _singleTool
+
+    private val _isFetchingTool = MutableStateFlow(false)
+    val isFetchingTool: StateFlow<Boolean> = _isFetchingTool
+
     private val _isLoadingMore = MutableStateFlow(false)
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
@@ -79,6 +85,25 @@ class ToolListViewModel @Inject constructor(
                     (_filters.value.availabilityStatus.isBlank() || tool.availabilityStatus.equals(_filters.value.availabilityStatus, true)) &&
                     (minPrice == null || price >= minPrice) &&
                     (maxPrice == null || price <= maxPrice)
+        }
+    }
+
+    fun fetchToolIById(toolId: String) {
+        val alreadyLoaded = _tools.value.find { it.first == toolId }
+        if (alreadyLoaded != null) {
+            _singleTool.value = alreadyLoaded
+            return
+        }
+
+        viewModelScope.launch {
+            _isFetchingTool.value = true
+            val tool = toolRepository.getToolById(toolId)
+            if (tool != null) {
+                _singleTool.value = toolId to tool
+            } else {
+                _singleTool.value = null
+            }
+            _isFetchingTool.value = false
         }
     }
 }

@@ -45,6 +45,15 @@ class ToolRepository @Inject constructor(
         }
     }
 
+    suspend fun getToolById(id: String): Tool? {
+        return try {
+            val doc = firestore.collection("tools").document(id).get().await()
+            doc.toObject(Tool::class.java)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun getTools(): List<Pair<String, Tool>> {
         return try {
             val result = firestore.collection("tools").get().await()

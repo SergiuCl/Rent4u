@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,14 +38,33 @@ fun ToolDetailsScreen(
     viewModel: ToolListViewModel = hiltViewModel()
 ) {
     val toolsState = viewModel.tools.collectAsState()
-    val tool = toolsState.value.find { it.first == toolId }?.second
-    val isLoading = toolsState.value.isEmpty()
+    val fallbackToolState = viewModel.singleTool.collectAsState()
+
+    // will be true if the viewModel is loading one tool from the database
+    // when the fetchToolIById method is executed
+    val isFetchingTool = viewModel.isFetchingTool.collectAsState()
+
+    // this will be set if the tool was already loaded before
+    val toolFromList = toolsState.value.find { it.first == toolId }?.second
+
+    // this will be used if the tool was not already loaded
+    val fallbackTool = fallbackToolState.value?.takeIf { it.first == toolId }?.second
+
+    val tool = toolFromList ?: fallbackTool
+    val isLoading = toolsState.value.isEmpty() && fallbackTool == null
+
+    // trigger fetch if needed
+    LaunchedEffect(toolId) {
+        if (toolFromList == null && fallbackTool == null) {
+            viewModel.fetchToolIById(toolId)
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { innerPadding ->
         when {
-            isLoading -> {
+            isLoading || isFetchingTool.value -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
