@@ -9,7 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 
 @Composable
-fun BookingScreen(navController: NavController) {
+fun BookingScreen(
+    toolId: String,
+    navController: NavController
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
