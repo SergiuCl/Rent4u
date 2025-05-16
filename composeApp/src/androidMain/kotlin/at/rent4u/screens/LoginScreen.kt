@@ -1,28 +1,31 @@
 package at.rent4u.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import at.rent4u.auth.UserAuth
-import at.rent4u.utils.showToast
+import at.rent4u.presentation.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,11 +34,12 @@ import kotlinx.coroutines.launch
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    var showToastMessage by remember { mutableStateOf<String?>(null) }
     val isEmailValid = validateEmail(email)
-    val isFormValid = email.isNotBlank()
-            && password.isNotBlank()
+    val isFormValid = email.isNotBlank() && password.isNotBlank()
+
+    val viewModel: UserViewModel = hiltViewModel()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val toastMessage by viewModel.toastMessage.collectAsState()
 
     Box(
         modifier = Modifier
@@ -44,7 +48,7 @@ fun LoginScreen(navController: NavController) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Welcome Back", style = MaterialTheme.typography.h5)
+            Text("Welcome Back", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -69,23 +73,18 @@ fun LoginScreen(navController: NavController) {
             Button(enabled = !isLoading && isFormValid, onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
                     if (!isEmailValid) {
-                        showToastMessage = "Invalid email address"
+                        viewModel.setToastMessage("Invalid email address")
                         return@launch
                     }
 
-                    isLoading = true
-
-                    val userAuth = UserAuth()
-                    val success = userAuth.loginUser(email, password)
-
-                    isLoading = false
+                    val success = viewModel.login(email, password)
 
                     if (success) {
                         navController.navigate(Screen.ToolList.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     } else {
-                        showToastMessage = "Login failed. Please try again."
+                        viewModel.setToastMessage("Login failed. Please try again.")
                     }
                 }
             }) {
@@ -106,8 +105,8 @@ fun LoginScreen(navController: NavController) {
         addScreenLoader()
     }
 
-    showToastMessage?.let {
-        showToast(it)
-        showToastMessage = null
+    toastMessage?.let {
+        Toast.makeText(LocalContext.current, it, Toast.LENGTH_LONG).show()
+        viewModel.clearToastMessage()
     }
 }

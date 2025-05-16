@@ -1,14 +1,17 @@
-package at.rent4u.auth
+package at.rent4u.data
 
-import at.rent4u.logging.logMessage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-actual class UserAuth actual constructor() {
-    actual suspend fun registerUser(
+class UserRepository @Inject constructor(
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
+) {
+
+    suspend fun registerUser(
         email: String,
         password: String,
         username: String,
@@ -17,24 +20,19 @@ actual class UserAuth actual constructor() {
         phone: String
     ): Pair<Boolean, String?> {
         return try {
-            val auth = FirebaseAuth.getInstance()
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid ?: run {
-                logMessage("Registration", "UID is null")
-                return false to "Err.general"
-            }
-
-            logMessage("Registration", "Got UID: $uid — writing to Firestore")
+            val uid = result.user?.uid ?: return false to "Err.general"
 
             val userData = hashMapOf(
                 "username" to username,
                 "firstName" to firstName,
                 "lastName" to lastName,
                 "email" to email,
-                "phone" to phone
+                "phone" to phone,
+                "admin" to false // default new users to non-admin
             )
 
-            Firebase.firestore.collection("users").document(uid).set(userData).await()
+            firestore.collection("users").document(uid).set(userData).await()
 
             true to null
         } catch (e: FirebaseAuthUserCollisionException) {
@@ -44,20 +42,28 @@ actual class UserAuth actual constructor() {
         }
     }
 
-    actual suspend fun loginUser(email: String, password: String): Boolean {
+    suspend fun loginUser(email: String, password: String): Boolean {
         return try {
-            val auth = FirebaseAuth.getInstance()
             auth.signInWithEmailAndPassword(email, password).await()
-
-            logMessage("Login", "Login successful for $email")
             true
         } catch (e: Exception) {
-            logMessage("Login", "Login failed: ${e.message}")
             false
         }
     }
 
-    actual fun logoutUser() {
-        FirebaseAuth.getInstance().signOut()
+    fun logoutUser() {
+        auth.signOut()
     }
+
+    suspend fun isCurrentUserAdmin(): Boolean {
+        val user = auth.currentUser ?: return false
+        return try {
+            val doc = firestore.collection("users").document(user.uid).get().await()
+            doc.getBoolean("admin") == true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun getCurrentUserId(): String? = auth.currentUser?.uid
 }
