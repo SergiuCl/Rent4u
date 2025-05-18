@@ -112,7 +112,7 @@ fun AdminToolEditorScreen(navController: NavController) {
             }
 
             if (isLoading) {
-                addScreenLoader()
+                LoadingScreen()
             }
 
             toastMessage?.let {

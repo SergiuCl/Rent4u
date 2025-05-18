@@ -190,7 +190,7 @@ fun RegisterScreen(navController: NavController) {
     }
 
     if (isLoading) {
-        addScreenLoader()
+        LoadingScreen()
     }
 
     // Observe the state and show the toast when the message is not null
