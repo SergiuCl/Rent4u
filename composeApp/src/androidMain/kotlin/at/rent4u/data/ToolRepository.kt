@@ -1,9 +1,13 @@
 package at.rent4u.data
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import at.rent4u.model.Booking
 import at.rent4u.model.Tool
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 import javax.inject.Inject
 
 class ToolRepository @Inject constructor(
@@ -62,6 +66,68 @@ class ToolRepository @Inject constructor(
                     doc.id to tool
                 }
             }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun bookTool(booking: Booking): Boolean {
+        return try {
+            val start = LocalDate.parse(booking.startDate)
+            val end = LocalDate.parse(booking.endDate)
+
+            val snapshot = firestore.collection("bookings")
+                .whereEqualTo("toolId", booking.toolId)
+                .get()
+                .await()
+
+            val isOverlapping = snapshot.documents.any { doc ->
+                val existingStartStr = doc.getString("startDate")
+                val existingEndStr = doc.getString("endDate")
+
+                if (existingStartStr != null && existingEndStr != null) {
+                    val existingStart = LocalDate.parse(existingStartStr)
+                    val existingEnd = LocalDate.parse(existingEndStr)
+
+                    // Check if ranges overlap: A_start <= B_end && B_start <= A_end
+                    !start.isAfter(existingEnd) && !end.isBefore(existingStart)
+                } else false
+            }
+
+            if (isOverlapping) {
+                false
+            } else {
+                firestore.collection("bookings").add(booking).await()
+                true
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    suspend fun getBookedDates(toolId: String): List<LocalDate> {
+        return try {
+            val snapshot = firestore.collection("bookings")
+                .whereEqualTo("toolId", toolId)
+                .get()
+                .await()
+
+            val bookedRanges = snapshot.documents.flatMap { doc ->
+                val startDateStr = doc.getString("startDate")
+                val endDateStr = doc.getString("endDate")
+
+                if (startDateStr != null && endDateStr != null) {
+                    val start = LocalDate.parse(startDateStr)
+                    val end = LocalDate.parse(endDateStr)
+                    generateSequence(start) { current ->
+                        if (current.isBefore(end)) current.plusDays(1) else null
+                    }.toList() + end // include end date
+                } else emptyList()
+            }
+
+            bookedRanges.distinct()
         } catch (e: Exception) {
             emptyList()
         }

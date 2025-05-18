@@ -35,13 +35,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 
 @Composable
-fun addScreenLoader() {
+fun LoadingScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -188,5 +189,17 @@ fun DropDownField(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun LabelInputPair(label: String, value: String) {
+    Column(modifier = Modifier
+        .padding(bottom = 16.dp)
+        .fillMaxWidth()
+    ) {
+        Text(text = label, fontWeight = FontWeight.Bold)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(text = value)
     }
 }

@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -95,16 +94,16 @@ fun ToolDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    InfoRow("Model", tool.modelNumber)
-                    InfoRow("Description", tool.description)
-                    InfoRow("Availability", tool.availabilityStatus)
-                    InfoRow("Power", tool.powerSource)
-                    InfoRow("Type", tool.type)
-                    InfoRow("Voltage", tool.voltage)
-                    InfoRow("Fuel Type", tool.fuelType)
-                    InfoRow("Weight", tool.weight)
-                    InfoRow("Dimensions", tool.dimensions)
-                    InfoRow("Rental rate", tool.rentalRate)
+                    LabelInputPair("Model", tool.modelNumber)
+                    LabelInputPair("Description", tool.description)
+                    LabelInputPair("Availability", tool.availabilityStatus)
+                    LabelInputPair("Power", tool.powerSource)
+                    LabelInputPair("Type", tool.type)
+                    LabelInputPair("Voltage", tool.voltage)
+                    LabelInputPair("Fuel Type", tool.fuelType)
+                    LabelInputPair("Weight", tool.weight)
+                    LabelInputPair("Dimensions", tool.dimensions)
+                    LabelInputPair("Rental rate", tool.rentalRate)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -139,17 +138,5 @@ fun ToolDetailsScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun InfoRow(label: String, value: String) {
-    Column(modifier = Modifier
-        .padding(bottom = 16.dp)
-        .fillMaxWidth()
-    ) {
-        Text(text = label, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = value)
     }
 }
