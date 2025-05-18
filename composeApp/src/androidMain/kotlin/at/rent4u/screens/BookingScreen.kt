@@ -137,6 +137,7 @@ fun CustomCalendarPicker(
     bookedDates: List<LocalDate>,
     onDateRangeSelected: (LocalDate, LocalDate) -> Unit
 ) {
+    val context = LocalContext.current
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
     var startDate by remember { mutableStateOf<LocalDate?>(null) }
     var endDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -147,11 +148,10 @@ fun CustomCalendarPicker(
         val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Sunday = 0
 
         val totalGridCells = ((firstDayOfWeek + lastDay + 6) / 7) * 7
-        val dates = (0 until totalGridCells).map { index ->
+        (0 until totalGridCells).map { index ->
             val dayOffset = index - firstDayOfWeek
             if (dayOffset in 0 until lastDay) currentMonth.atDay(dayOffset + 1) else null
         }
-        dates
     }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -188,9 +188,10 @@ fun CustomCalendarPicker(
             modifier = Modifier.height(300.dp).padding(8.dp)
         ) {
             itemsIndexed(days) { _, date ->
-                val isBooked = date != null && bookedDates.any { it == date }
+                val isBooked = date != null && bookedDates.contains(date)
                 val isSelected = date != null && (date == startDate || date == endDate ||
-                        (startDate != null && endDate != null && date.isAfter(startDate) && date.isBefore(endDate)))
+                        (startDate != null && endDate != null &&
+                                date.isAfter(startDate) && date.isBefore(endDate)))
 
                 Box(
                     modifier = Modifier
@@ -211,8 +212,28 @@ fun CustomCalendarPicker(
                                 } else if (it.isBefore(startDate)) {
                                     startDate = it
                                 } else {
-                                    endDate = it
-                                    onDateRangeSelected(startDate!!, it)
+                                    // Validate range before accepting - should not be able to select
+                                    // a range which contains already booked days
+                                    val rangeStart = startDate!!
+                                    val rangeEnd = it
+
+                                    val isOverlapping = bookedDates.any { booked ->
+                                        // Treat each booked day as its own 1-day range
+                                        !rangeStart.isAfter(booked) && !rangeEnd.isBefore(booked)
+                                    }
+
+                                    if (isOverlapping) {
+                                        Toast.makeText(
+                                            context,
+                                            "Selected range includes booked dates!",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        startDate = null
+                                        endDate = null
+                                    } else {
+                                        endDate = it
+                                        onDateRangeSelected(startDate!!, it)
+                                    }
                                 }
                             }
                         },
