@@ -1,6 +1,7 @@
 package at.rent4u.screens
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -27,6 +29,9 @@ fun MyBookingsScreen(
     val bookings = viewModel.userBookings.collectAsState()
     val tools = viewModel.bookedTools.collectAsState()
     var bookingToCancel by remember { mutableStateOf<Booking?>(null) }
+
+    val context = LocalContext.current
+    val toastMessage by viewModel.toastMessage.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserBookings()
@@ -93,6 +98,11 @@ fun MyBookingsScreen(
                         }
                     }
                 }
+            }
+
+            toastMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                viewModel.clearToastMessage()
             }
         }
 
