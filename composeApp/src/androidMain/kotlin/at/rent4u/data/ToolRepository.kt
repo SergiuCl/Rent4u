@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import at.rent4u.model.Booking
 import at.rent4u.model.Tool
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
@@ -130,6 +131,46 @@ class ToolRepository @Inject constructor(
             bookedRanges.distinct()
         } catch (e: Exception) {
             emptyList()
+        }
+    }
+
+    suspend fun getBookingsForUser(userId: String): List<Booking> {
+        return try {
+            val snapshot = firestore.collection("bookings")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { it.toObject(Booking::class.java) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun getToolsByIds(ids: Set<String>): List<Pair<String, Tool>> {
+        return try {
+            if (ids.isEmpty()) return emptyList()
+            val result = firestore.collection("tools")
+                .whereIn(FieldPath.documentId(), ids.toList())
+                .get().await()
+            result.documents.mapNotNull { doc ->
+                doc.toObject(Tool::class.java)?.let { tool -> doc.id to tool }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun cancelBooking(booking: Booking) {
+        try {
+            val snapshot = firestore.collection("bookings")
+                .whereEqualTo("toolId", booking.toolId)
+                .whereEqualTo("userId", booking.userId)
+                .whereEqualTo("startDate", booking.startDate)
+                .whereEqualTo("endDate", booking.endDate)
+                .get()
+                .await()
+            snapshot.documents.forEach { it.reference.delete().await() }
+        } catch (_: Exception) {
         }
     }
 }

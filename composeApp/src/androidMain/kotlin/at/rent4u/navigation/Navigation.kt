@@ -1,5 +1,7 @@
 package at.rent4u.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -14,9 +16,11 @@ import at.rent4u.screens.ToolListScreen
 import at.rent4u.screens.BookingScreen
 import at.rent4u.screens.AdminToolEditorScreen
 import at.rent4u.screens.LoginScreen
+import at.rent4u.screens.MyBookingsScreen
 import at.rent4u.screens.ProfileScreen
 import at.rent4u.screens.RegisterScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {
@@ -39,6 +43,10 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         ) { backStackEntry ->
             val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: ""
             BookingScreen(toolId = toolId, navController = navController)
+        }
+
+        composable(Screen.MyBookings.route) {
+            MyBookingsScreen(navController)
         }
 
         composable(Screen.AdminToolEditor.route) {
