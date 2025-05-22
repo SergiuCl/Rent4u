@@ -8,14 +8,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.model.Booking
 import at.rent4u.presentation.MyBookingsViewModel
 import coil.compose.AsyncImage
 
@@ -27,6 +26,7 @@ fun MyBookingsScreen(
 ) {
     val bookings = viewModel.userBookings.collectAsState()
     val tools = viewModel.bookedTools.collectAsState()
+    var bookingToCancel by remember { mutableStateOf<Booking?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserBookings()
@@ -80,7 +80,7 @@ fun MyBookingsScreen(
                                     Spacer(modifier = Modifier.height(8.dp))
 
                                     Button(
-                                        onClick = { viewModel.cancelBooking(booking) },
+                                        onClick = { bookingToCancel = booking },
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = MaterialTheme.colorScheme.error,
                                             contentColor = MaterialTheme.colorScheme.onError
@@ -94,6 +94,27 @@ fun MyBookingsScreen(
                     }
                 }
             }
+        }
+
+        bookingToCancel?.let { booking ->
+            AlertDialog(
+                onDismissRequest = { bookingToCancel = null },
+                title = { Text("Confirm Cancellation") },
+                text = { Text("Are you sure you want to cancel this booking?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.cancelBooking(booking)
+                        bookingToCancel = null
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { bookingToCancel = null }) {
+                        Text("No")
+                    }
+                }
+            )
         }
     }
 }
