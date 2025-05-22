@@ -94,6 +94,7 @@ fun ToolDetailsScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    LabelInputPair("Brand", tool.brand)
                     LabelInputPair("Model", tool.modelNumber)
                     LabelInputPair("Description", tool.description)
                     LabelInputPair("Availability", tool.availabilityStatus)

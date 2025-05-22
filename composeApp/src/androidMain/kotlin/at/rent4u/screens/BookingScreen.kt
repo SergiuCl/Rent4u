@@ -90,8 +90,9 @@ fun BookingScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             tool?.let {
-                LabelInputPair("Name", it.type)
+                LabelInputPair("Brand", it.brand)
                 LabelInputPair("Model", it.modelNumber)
+                LabelInputPair("Type", it.type)
                 LabelInputPair("Rental Rate", "${it.rentalRate}€")
             }
 
