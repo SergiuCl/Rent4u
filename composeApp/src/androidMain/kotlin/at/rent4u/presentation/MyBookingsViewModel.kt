@@ -30,17 +30,22 @@ class MyBookingsViewModel @Inject constructor(
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> = _toastMessage
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun fetchUserBookings() {
         val userId = userRepository.getCurrentUserId() ?: return
 
         viewModelScope.launch {
+            _isLoading.value = true
             val bookings = repository.getBookingsForUser(userId)
             _userBookings.value = bookings
 
             val toolIds = bookings.map { it.toolId }.toSet()
             val tools = repository.getToolsByIds(toolIds)
-            _bookedTools.value = tools.associate { it.first to it.second }  // toolId -> Tool
+            _bookedTools.value = tools.associate { it.first to it.second } // toolId -> Tool
+            _isLoading.value = false
         }
     }
 

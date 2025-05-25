@@ -36,6 +36,8 @@ fun MyBookingsScreen(
     val context = LocalContext.current
     val toastMessage by viewModel.toastMessage.collectAsState()
 
+    val isLoading by viewModel.isLoading.collectAsState()
+
     LaunchedEffect(Unit) {
         viewModel.fetchUserBookings()
     }
@@ -58,7 +60,14 @@ fun MyBookingsScreen(
                 !endDate.isBefore(LocalDate.now())
             }
 
-            if (activeBookings.isEmpty()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (activeBookings.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
