@@ -90,8 +90,9 @@ fun BookingScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             tool?.let {
-                LabelInputPair("Name", it.type)
+                LabelInputPair("Brand", it.brand)
                 LabelInputPair("Model", it.modelNumber)
+                LabelInputPair("Type", it.type)
                 LabelInputPair("Rental Rate", "${it.rentalRate}€")
             }
 
@@ -147,8 +148,7 @@ fun CustomCalendarPicker(
         val lastDay = currentMonth.lengthOfMonth()
         val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Sunday = 0
 
-        val totalGridCells = ((firstDayOfWeek + lastDay + 6) / 7) * 7
-        (0 until totalGridCells).map { index ->
+        (0 until ((firstDayOfWeek + lastDay + 6) / 7) * 7).map { index ->
             val dayOffset = index - firstDayOfWeek
             if (dayOffset in 0 until lastDay) currentMonth.atDay(dayOffset + 1) else null
         }
@@ -188,6 +188,7 @@ fun CustomCalendarPicker(
             modifier = Modifier.height(300.dp).padding(8.dp)
         ) {
             itemsIndexed(days) { _, date ->
+                val isPast = date != null && date.isBefore(LocalDate.now())
                 val isBooked = date != null && bookedDates.contains(date)
                 val isSelected = date != null && (date == startDate || date == endDate ||
                         (startDate != null && endDate != null &&
@@ -199,12 +200,12 @@ fun CustomCalendarPicker(
                         .padding(2.dp)
                         .background(
                             when {
-                                isBooked -> Color.LightGray
+                                isBooked || isPast -> Color.LightGray
                                 isSelected -> MaterialTheme.colorScheme.primary
                                 else -> Color.Transparent
                             }
                         )
-                        .clickable(enabled = date != null && !isBooked) {
+                        .clickable(enabled = date != null && !isBooked && !isPast) {
                             date?.let {
                                 if (startDate == null || (startDate != null && endDate != null)) {
                                     startDate = it
