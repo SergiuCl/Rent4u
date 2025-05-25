@@ -108,20 +108,22 @@ fun ToolDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = {
-                            navController.navigate(Screen.Booking.createRoute(toolId))
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(24.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.LightGray,
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text("Book this Tool")
+                    if (tool.availabilityStatus == "Available") {
+                        Button(
+                            onClick = {
+                                navController.navigate(Screen.Booking.createRoute(toolId))
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            shape = RoundedCornerShape(24.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.LightGray,
+                                contentColor = Color.Black
+                            )
+                        ) {
+                            Text("Book this Tool")
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(80.dp))
