@@ -22,16 +22,45 @@ fun ContactUsScreen(
     val isSending by viewModel.isSending.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Contact Us", style = MaterialTheme.typography.headlineMedium)
-            Spacer(modifier = Modifier.height(16.dp))
+    Scaffold(
+        bottomBar = { BottomNavBar(navController) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header
+            Text(
+                text = "Contact Us",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(bottom = 8.dp)
+            )
 
+            // Info message
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                ),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Text(
+                    text = "If you have any questions, issues, or feedback, feel free to contact us using the form below. We’re here to help!",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .padding(16.dp)
+                )
+            }
+
+            // Message box
             OutlinedTextField(
                 value = message,
                 onValueChange = { viewModel.updateMessage(it) },
@@ -39,17 +68,18 @@ fun ContactUsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
-                maxLines = 10,
-                singleLine = false
+                singleLine = false,
+                maxLines = 10
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            // Send button
             Button(
                 onClick = {
                     viewModel.sendEmail(context) {
                         navController.navigate(Screen.ToolList.route) {
-                            popUpTo(0) { inclusive = true }
+                            popUpTo(Screen.ContactUs.route) { inclusive = true }
                         }
                     }
                 },
@@ -58,10 +88,10 @@ fun ContactUsScreen(
                 Text("Send")
             }
         }
-    }
 
-    toastMessage?.let {
-        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-        viewModel.clearToastMessage()
+        toastMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearToastMessage()
+        }
     }
 }
