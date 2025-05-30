@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -81,6 +82,20 @@ fun BottomNavBar(navController: NavController) {
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(start = 20.dp)
+            )
+
+            // Center-aligned Contact Us
+            BottomNavIcon(
+                icon = Icons.Default.Email,
+                contentDescription = "Contact Us",
+                isSelected = currentRoute == Screen.ContactUs.route,
+                onClick = {
+                    navController.navigate(Screen.ContactUs.route) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                modifier = Modifier.align(Alignment.Center)
             )
 
             // Right-aligned Profile

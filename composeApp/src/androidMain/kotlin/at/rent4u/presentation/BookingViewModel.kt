@@ -5,9 +5,9 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.rent4u.data.ToolRepository
+import at.rent4u.data.UserRepository
 import at.rent4u.model.Booking
 import at.rent4u.model.Tool
-import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookingViewModel @Inject constructor(
-    private val repository: ToolRepository
+    private val repository: ToolRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _tool = MutableStateFlow<Tool?>(null)
@@ -46,8 +47,8 @@ class BookingViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun book(toolId: String, startDate: LocalDate, endDate: LocalDate) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid
+    fun book(toolId: String, startDate: LocalDate, endDate: LocalDate, totalAmount: Double) {
+        val userId = userRepository.getCurrentUserId()
         if (userId == null) {
             _toastMessage.value = "You must be logged in to book"
             return
@@ -57,7 +58,8 @@ class BookingViewModel @Inject constructor(
             toolId = toolId,
             userId = userId,
             startDate = startDate.toString(),
-            endDate = endDate.toString()
+            endDate = endDate.toString(),
+            totalAmount = totalAmount
         )
 
         viewModelScope.launch {

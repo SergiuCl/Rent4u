@@ -15,6 +15,7 @@ import at.rent4u.screens.ToolDetailsScreen
 import at.rent4u.screens.ToolListScreen
 import at.rent4u.screens.BookingScreen
 import at.rent4u.screens.AdminToolEditorScreen
+import at.rent4u.screens.ContactUsScreen
 import at.rent4u.screens.LoginScreen
 import at.rent4u.screens.MyBookingsScreen
 import at.rent4u.screens.ProfileScreen
@@ -67,6 +68,10 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
 
         composable(Screen.Register.route) {
             RegisterScreen(navController)
+        }
+
+        composable(Screen.ContactUs.route) {
+            ContactUsScreen(navController)
         }
     }
 }

@@ -66,4 +66,15 @@ class UserRepository @Inject constructor(
     }
 
     fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    suspend fun getCurrentUserUsername(): String? {
+        val uid = auth.currentUser?.uid ?: return null
+
+        return try {
+            val doc = firestore.collection("users").document(uid).get().await()
+            doc.getString("username")
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

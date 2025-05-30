@@ -8,5 +8,6 @@ data class Booking(
     val userId: String = "",
     val startDate: String = "",  // ISO 8601 "yyyy-MM-dd"
     val endDate: String = "",
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val totalAmount: Double = 0.0
 )

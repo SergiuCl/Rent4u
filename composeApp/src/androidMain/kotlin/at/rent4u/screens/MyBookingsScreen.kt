@@ -55,9 +55,8 @@ fun MyBookingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // only show active bookings, not the ones from the past
-            val activeBookings = bookings.value.filter {
-                val endDate = LocalDate.parse(it.endDate)
-                !endDate.isBefore(LocalDate.now())
+            val activeBookings = remember(bookings.value) {
+                getActiveBookingsSorted(bookings.value)
             }
 
             if (isLoading) {
@@ -117,7 +116,7 @@ fun MyBookingsScreen(
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(text = "${tool.type} (${tool.brand})", style = MaterialTheme.typography.titleMedium)
                                         Text(text = "Model: ${tool.modelNumber}")
-                                        Text(text = "Rental: ${tool.rentalRate}")
+                                        Text(text = "Rental: ${booking.totalAmount}€")
                                         Text(
                                             text = "From: ${booking.startDate} To: ${booking.endDate}",
                                             style = MaterialTheme.typography.bodySmall
@@ -169,4 +168,12 @@ fun MyBookingsScreen(
             )
         }
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+fun getActiveBookingsSorted(bookings: List<Booking>): List<Booking> {
+    val today = LocalDate.now()
+    return bookings
+        .filter { LocalDate.parse(it.endDate).isAfter(today) || LocalDate.parse(it.endDate).isEqual(today) }
+        .sortedBy { LocalDate.parse(it.startDate) }
 }

@@ -45,6 +45,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -93,7 +94,7 @@ fun BookingScreen(
                 LabelInputPair("Brand", it.brand)
                 LabelInputPair("Model", it.modelNumber)
                 LabelInputPair("Type", it.type)
-                LabelInputPair("Rental Rate", "${it.rentalRate}€")
+                LabelInputPair("Rental Rate", "${it.rentalRate}€ / day")
             }
 
             Spacer(Modifier.height(16.dp))
@@ -115,7 +116,13 @@ fun BookingScreen(
             Button(
                 onClick = {
                     if (selectedStartDate != null && selectedEndDate != null) {
-                        viewModel.book(toolId, selectedStartDate!!, selectedEndDate!!)
+                        val rate = tool?.rentalRate?.replace("€", "")?.trim()?.toDoubleOrNull()
+                        val days = ChronoUnit.DAYS.between(selectedStartDate, selectedEndDate) + 1
+                        val totalAmount = if (rate != null) {
+                            String.format("%.2f", rate * days).toDouble()
+                        } else 0.0
+
+                        viewModel.book(toolId, selectedStartDate!!, selectedEndDate!!, totalAmount)
                     }
                 },
                 enabled = selectedStartDate != null && selectedEndDate != null && !isLoading,
