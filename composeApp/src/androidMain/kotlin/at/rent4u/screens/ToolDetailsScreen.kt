@@ -104,7 +104,7 @@ fun ToolDetailsScreen(
                     LabelInputPair("Fuel Type", tool.fuelType)
                     LabelInputPair("Weight", tool.weight)
                     LabelInputPair("Dimensions", tool.dimensions)
-                    LabelInputPair("Rental rate", tool.rentalRate)
+                    LabelInputPair("Rental rate", "${tool.rentalRate}€ / day")
 
                     Spacer(modifier = Modifier.height(16.dp))
 

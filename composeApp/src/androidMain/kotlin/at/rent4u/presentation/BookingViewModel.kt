@@ -46,7 +46,7 @@ class BookingViewModel @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun book(toolId: String, startDate: LocalDate, endDate: LocalDate) {
+    fun book(toolId: String, startDate: LocalDate, endDate: LocalDate, totalAmount: Double) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId == null) {
             _toastMessage.value = "You must be logged in to book"
@@ -57,7 +57,8 @@ class BookingViewModel @Inject constructor(
             toolId = toolId,
             userId = userId,
             startDate = startDate.toString(),
-            endDate = endDate.toString()
+            endDate = endDate.toString(),
+            totalAmount = totalAmount
         )
 
         viewModelScope.launch {
