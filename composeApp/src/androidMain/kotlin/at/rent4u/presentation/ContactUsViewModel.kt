@@ -60,10 +60,12 @@ class ContactUsViewModel @Inject constructor(
                             "&body=" + Uri.encode(fullBody)
                 )
 
+                // this is used for opening the email client
                 val intent = Intent(Intent.ACTION_SENDTO).apply {
                     data = uri
                 }
 
+                // this opens the chooser for the email client
                 context.startActivity(Intent.createChooser(intent, "Send Email"))
                 _message.value = ""
                 _toastMessage.value = "Message ready to send via email app."
