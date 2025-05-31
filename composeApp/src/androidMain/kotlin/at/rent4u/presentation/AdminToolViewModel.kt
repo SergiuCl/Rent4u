@@ -3,6 +3,7 @@ package at.rent4u.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.rent4u.data.ToolRepository
+import at.rent4u.data.UserRepository
 import at.rent4u.model.Tool
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdminToolViewModel @Inject constructor(
-    private val repository: ToolRepository
+    private val repository: ToolRepository,
+    private val userRepository: UserRepository
 ): ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -69,4 +71,39 @@ class AdminToolViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateTool(toolId: String, updatedData: Map<String, Any>) {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            val isAdmin = userRepository.isCurrentUserAdmin()
+            if (!isAdmin) {
+                _toastMessage.value = "Permission denied: Not an admin"
+                _creationSuccess.value = false
+                _isLoading.value = false
+                return@launch
+            }
+
+            val (success, error) = repository.updateTool(toolId, updatedData)
+            _isLoading.value = false
+
+            if (success) {
+                _toastMessage.value = "Tool updated successfully!"
+                _creationSuccess.value = true
+            } else {
+                _toastMessage.value = "Failed to update tool."
+                _creationSuccess.value = false
+            }
+        }
+    }
+
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin: StateFlow<Boolean> = _isAdmin
+
+    init {
+        viewModelScope.launch {
+            _isAdmin.value = userRepository.isCurrentUserAdmin()
+        }
+    }
+
 }

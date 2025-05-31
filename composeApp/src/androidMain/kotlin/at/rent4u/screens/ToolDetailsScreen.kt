@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
 
@@ -34,7 +35,8 @@ import coil.compose.AsyncImage
 fun ToolDetailsScreen(
     toolId: String,
     navController: NavController,
-    viewModel: ToolListViewModel = hiltViewModel()
+    viewModel: ToolListViewModel = hiltViewModel(),
+    onEditClick: (Tool) -> Unit
 ) {
     val toolsState = viewModel.tools.collectAsState()
     val fallbackToolState = viewModel.singleTool.collectAsState()
@@ -52,6 +54,8 @@ fun ToolDetailsScreen(
     val tool = toolFromList ?: fallbackTool
     val isLoading = toolsState.value.isEmpty() && fallbackTool == null
 
+    val isAdminState = viewModel.isAdmin.collectAsState()
+    val isAdmin = isAdminState.value
     // trigger fetch if needed
     LaunchedEffect(toolId) {
         if (toolFromList == null && fallbackTool == null) {
@@ -126,6 +130,12 @@ fun ToolDetailsScreen(
                         }
                     }
 
+                    if (isAdmin) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(onClick = { onEditClick(tool) }) {
+                            Text("Edit")
+                        }
+                    }
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }

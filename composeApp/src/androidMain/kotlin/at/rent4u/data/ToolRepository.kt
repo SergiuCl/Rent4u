@@ -173,4 +173,13 @@ class ToolRepository @Inject constructor(
         } catch (_: Exception) {
         }
     }
+
+    suspend fun updateTool(toolId: String, data: Map<String, Any>): Pair<Boolean, String?> {
+        return try {
+            firestore.collection("tools").document(toolId).update(data).await()
+            true to null
+        } catch (e: Exception) {
+            false to e.message
+        }
+    }
 }
