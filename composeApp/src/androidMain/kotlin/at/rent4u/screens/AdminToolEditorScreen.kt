@@ -34,7 +34,10 @@ import at.rent4u.model.Tool
 import at.rent4u.presentation.AdminToolViewModel
 
 @Composable
-fun AdminToolEditorScreen(navController: NavController) {
+fun AdminToolEditorScreen(
+    toolId: String,
+    navController: NavController
+) {
     val viewModel: AdminToolViewModel = hiltViewModel()
     val context = LocalContext.current
 

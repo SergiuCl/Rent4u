@@ -20,6 +20,7 @@ import at.rent4u.screens.LoginScreen
 import at.rent4u.screens.MyBookingsScreen
 import at.rent4u.screens.ProfileScreen
 import at.rent4u.screens.RegisterScreen
+import at.rent4u.screens.AdminToolEditorScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -35,7 +36,13 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             arguments = listOf(navArgument(ARG_TOOL_ID) { type = NavType.StringType })
         ) { backStackEntry ->
             val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: ""
-            ToolDetailsScreen(toolId = toolId, navController = navController)
+            ToolDetailsScreen(
+                toolId = toolId,
+                navController = navController,
+                onEditClick = { tool ->
+                    navController.navigate(Screen.AdminToolEditor.route + "/${toolId}")
+                }
+            )
         }
 
         composable(
@@ -46,12 +53,16 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             BookingScreen(toolId = toolId, navController = navController)
         }
 
-        composable(Screen.MyBookings.route) {
-            MyBookingsScreen(navController)
+        composable(
+            route = "admin_tool_editor/{toolId}",
+            arguments = listOf(navArgument("toolId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: return@composable
+            AdminToolEditorScreen(toolId = toolId, navController = navController)
         }
 
-        composable(Screen.AdminToolEditor.route) {
-            AdminToolEditorScreen(navController)
+        composable(Screen.MyBookings.route) {
+            MyBookingsScreen(navController)
         }
 
         composable(Screen.Login.route) {
