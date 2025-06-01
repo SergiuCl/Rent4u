@@ -34,8 +34,7 @@ import at.rent4u.model.Tool
 import at.rent4u.presentation.AdminToolViewModel
 
 @Composable
-fun AdminToolEditorScreen(
-    toolId: String,
+fun AdminToolCreateScreen(
     navController: NavController
 ) {
     val viewModel: AdminToolViewModel = hiltViewModel()
@@ -123,11 +122,11 @@ fun AdminToolEditorScreen(
                 viewModel.clearToastMessage()
             }
 
-            // watch creationSuccess state and react accordingly when it changes
+
             LaunchedEffect(creationSuccess) {
                 if (creationSuccess == true) {
                     navController.navigate(Screen.ToolList.route) {
-                        popUpTo(Screen.AdminToolEditor.route) { inclusive = true }
+                        popUpTo(Screen.AdminToolCreate.route) { inclusive = true }
                     }
                     viewModel.clearToastMessage()
                     viewModel.clearCreationSuccess()

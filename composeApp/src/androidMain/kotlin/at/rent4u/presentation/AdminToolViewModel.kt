@@ -1,5 +1,7 @@
 package at.rent4u.presentation
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.rent4u.data.ToolRepository
@@ -14,8 +16,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AdminToolViewModel @Inject constructor(
     private val repository: ToolRepository,
-    private val userRepository: UserRepository
-): ViewModel() {
+    private val userRepository: UserRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -25,6 +28,9 @@ class AdminToolViewModel @Inject constructor(
 
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> = _toastMessage
+
+    private val _tool = MutableStateFlow<Tool?>(null)
+    val tool: StateFlow<Tool?> = _tool
 
     fun clearToastMessage() {
         _toastMessage.value = null
@@ -97,13 +103,29 @@ class AdminToolViewModel @Inject constructor(
         }
     }
 
+    private val _editingTool = MutableStateFlow<Tool?>(null)
+    val editingTool: StateFlow<Tool?> = _editingTool
+
+    fun loadTool(toolId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _editingTool.value =
+                repository.getToolById(toolId) // you need this method in ToolRepository
+            _isLoading.value = false
+        }
+    }
+
     private val _isAdmin = MutableStateFlow(false)
     val isAdmin: StateFlow<Boolean> = _isAdmin
 
     init {
-        viewModelScope.launch {
-            _isAdmin.value = userRepository.isCurrentUserAdmin()
+        // Retrieve toolId from savedStateHandle
+        val toolId: String? = savedStateHandle["toolId"]
+        if (toolId != null) {
+            // Kick off loading the tool using the existing loadTool function
+            loadTool(toolId)
+        } else {
+            Log.e("AdminToolUpdateVM", "No toolId passed in savedStateHandle")
         }
     }
-
 }

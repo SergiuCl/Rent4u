@@ -1,6 +1,7 @@
 package at.rent4u.navigation
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -14,13 +15,13 @@ import at.rent4u.screens.Screen
 import at.rent4u.screens.ToolDetailsScreen
 import at.rent4u.screens.ToolListScreen
 import at.rent4u.screens.BookingScreen
-import at.rent4u.screens.AdminToolEditorScreen
+import at.rent4u.screens.AdminToolCreateScreen
 import at.rent4u.screens.ContactUsScreen
 import at.rent4u.screens.LoginScreen
 import at.rent4u.screens.MyBookingsScreen
 import at.rent4u.screens.ProfileScreen
 import at.rent4u.screens.RegisterScreen
-import at.rent4u.screens.AdminToolEditorScreen
+import at.rent4u.screens.AdminToolUpdateScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -39,8 +40,12 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             ToolDetailsScreen(
                 toolId = toolId,
                 navController = navController,
-                onEditClick = { tool ->
-                    navController.navigate(Screen.AdminToolEditor.route + "/${toolId}")
+                onEditClick = { _ ->
+                    if (toolId.isNotBlank()) {
+                        navController.navigate(Screen.AdminToolEditor.createRoute(toolId))
+                    } else {
+                        Log.e("EditButton", "Tool ID is missing, cannot navigate to editor")
+                    }
                 }
             )
         }
@@ -53,12 +58,16 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             BookingScreen(toolId = toolId, navController = navController)
         }
 
+        composable(Screen.AdminToolCreate.route) {
+            AdminToolCreateScreen(navController = navController)
+        }
+
         composable(
-            route = "admin_tool_editor/{toolId}",
-            arguments = listOf(navArgument("toolId") { type = NavType.StringType })
+            route = Screen.AdminToolEditor.route,
+            arguments = listOf(navArgument(ARG_TOOL_ID) { type = NavType.StringType })
         ) { backStackEntry ->
             val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: return@composable
-            AdminToolEditorScreen(toolId = toolId, navController = navController)
+            AdminToolUpdateScreen(toolId = toolId, navController = navController)
         }
 
         composable(Screen.MyBookings.route) {

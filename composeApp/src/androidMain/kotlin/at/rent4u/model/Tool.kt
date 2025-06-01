@@ -13,5 +13,6 @@ data class Tool(
     val voltage: String = "",
     val availabilityStatus: String = "",
     val rentalRate: String = "",
-    val image: String = ""
-)
+    val image: String = "",
+    val id: String = "",
+    )

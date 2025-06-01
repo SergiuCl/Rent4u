@@ -18,7 +18,12 @@ class ToolRepository @Inject constructor(
 
     suspend fun addTool(tool: Tool): Pair<Boolean, String?> {
         return try {
-            firestore.collection("tools").add(tool).await()
+            val docRef = firestore.collection("tools").add(tool).await()
+            val toolWithId = tool.copy(id = docRef.id)
+
+            // Optionally update the document with the ID field
+            firestore.collection("tools").document(docRef.id).set(toolWithId).await()
+
             true to null
         } catch (e: Exception) {
             false to e.localizedMessage
@@ -53,7 +58,7 @@ class ToolRepository @Inject constructor(
     suspend fun getToolById(id: String): Tool? {
         return try {
             val doc = firestore.collection("tools").document(id).get().await()
-            doc.toObject(Tool::class.java)
+            doc.toObject(Tool::class.java)?.copy(id = doc.id)
         } catch (e: Exception) {
             null
         }
