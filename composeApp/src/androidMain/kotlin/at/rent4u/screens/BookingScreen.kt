@@ -116,7 +116,7 @@ fun BookingScreen(
             Button(
                 onClick = {
                     if (selectedStartDate != null && selectedEndDate != null) {
-                        val rate = tool?.rentalRate?.replace("€", "")?.trim()?.toDoubleOrNull()
+                        val rate = tool?.rentalRate
                         val days = ChronoUnit.DAYS.between(selectedStartDate, selectedEndDate) + 1
                         val totalAmount = if (rate != null) {
                             String.format("%.2f", rate * days).toDouble()

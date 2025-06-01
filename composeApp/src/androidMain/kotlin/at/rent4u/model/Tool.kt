@@ -12,7 +12,7 @@ data class Tool(
     val fuelType: String = "",
     val voltage: String = "",
     val availabilityStatus: String = "",
-    val rentalRate: String = "",
+    var rentalRate: Double = 0.0,
     val image: String = "",
     val id: String = "",
     )

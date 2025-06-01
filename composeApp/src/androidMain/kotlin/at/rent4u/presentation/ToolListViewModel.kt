@@ -1,5 +1,6 @@
 package at.rent4u.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.rent4u.data.ToolRepository
@@ -20,11 +21,9 @@ class ToolListViewModel @Inject constructor(
 
     private val _isAdmin = MutableStateFlow(false)
     val isAdmin: StateFlow<Boolean> = _isAdmin
-    private val _tools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
-    val tools: StateFlow<List<Pair<String, Tool>>> = _tools.asStateFlow()
 
-    private val _singleTool = MutableStateFlow<Pair<String, Tool>?>(null)
-    val singleTool: StateFlow<Pair<String, Tool>?> = _singleTool
+    // We no longer expose _tools directly; instead we filter them immediately
+    private val _tools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
 
     private val _isFetchingTool = MutableStateFlow(false)
     val isFetchingTool: StateFlow<Boolean> = _isFetchingTool
@@ -33,12 +32,13 @@ class ToolListViewModel @Inject constructor(
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
     private val _filters = MutableStateFlow(ToolFilter())
-    val filters = _filters.asStateFlow()
+    val filters: StateFlow<ToolFilter> = _filters.asStateFlow()
 
+    // This is the flow your UI should collect from.
     private val _filteredTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
-    val filteredTools = _filteredTools.asStateFlow()
+    val filteredTools: StateFlow<List<Pair<String, Tool>>> = _filteredTools.asStateFlow()
 
-    private var hasMoreItems = true
+    // Pagination removed: hasMoreItems, lastDoc, etc.
 
     init {
         viewModelScope.launch {
@@ -47,23 +47,22 @@ class ToolListViewModel @Inject constructor(
     }
 
     fun loadMoreTools() {
-        if (_isLoadingMore.value || !hasMoreItems) return
+        if (_isLoadingMore.value) return
 
         viewModelScope.launch {
             _isLoadingMore.value = true
-            val newTools = toolRepository.getToolsPaged()
+            Log.d("ToolListVM", "Fetching all tools")
 
-            if (newTools.isEmpty()) {
-                hasMoreItems = false
-            } else {
-                // Use Firestore document ID as key to prevent duplicates
-                _tools.value = (_tools.value + newTools)
-                    .distinctBy { it.first }
-            }
+            // Fetch all tools in one go
+            val allTools = toolRepository.getToolsPaged(null)
+            Log.d("ToolListVM", "Repository returned ${allTools.size} tools")
 
+            // Replace the tools list and apply filters
+            _tools.value = allTools
             applyFilters()
 
-            _isAdmin.value = userRepository.isCurrentUserAdmin()
+            Log.d("ToolListVM", "After loading, tools.size = ${_tools.value.size}, filteredTools.size = ${_filteredTools.value.size}")
+
             _isLoadingMore.value = false
         }
     }
@@ -78,20 +77,22 @@ class ToolListViewModel @Inject constructor(
         val maxPrice = _filters.value.maxPriceText.toDoubleOrNull()
 
         _filteredTools.value = _tools.value.filter { (_, tool) ->
-            val price = tool.rentalRate.replace("€", "").toDoubleOrNull() ?: return@filter false
+            val price = tool.rentalRate
 
-            (_filters.value.brand.isBlank() || tool.brand.contains(_filters.value.brand, true)) &&
-                    (_filters.value.type.isBlank() || tool.type.contains(_filters.value.type, true)) &&
-                    (_filters.value.availabilityStatus.isBlank() || tool.availabilityStatus.equals(_filters.value.availabilityStatus, true)) &&
-                    (minPrice == null || price >= minPrice) &&
-                    (maxPrice == null || price <= maxPrice)
+            (_filters.value.brand.isBlank() || tool.brand.contains(_filters.value.brand, ignoreCase = true))
+                    && (_filters.value.type.isBlank() || tool.type.contains(_filters.value.type, ignoreCase = true))
+                    && (_filters.value.availabilityStatus.isBlank()
+                    || tool.availabilityStatus.equals(_filters.value.availabilityStatus, ignoreCase = true))
+                    && (minPrice == null || price >= minPrice)
+                    && (maxPrice == null || price <= maxPrice)
         }
     }
 
-    fun fetchToolIById(toolId: String) {
+    fun fetchToolById(toolId: String) {
         val alreadyLoaded = _tools.value.find { it.first == toolId }
         if (alreadyLoaded != null) {
-            _singleTool.value = alreadyLoaded
+            // If we already have it in the current list, just emit it immediately
+            _filteredTools.value = listOf(alreadyLoaded)
             return
         }
 
@@ -99,9 +100,9 @@ class ToolListViewModel @Inject constructor(
             _isFetchingTool.value = true
             val tool = toolRepository.getToolById(toolId)
             if (tool != null) {
-                _singleTool.value = toolId to tool
+                _filteredTools.value = listOf(toolId to tool)
             } else {
-                _singleTool.value = null
+                _filteredTools.value = emptyList()
             }
             _isFetchingTool.value = false
         }

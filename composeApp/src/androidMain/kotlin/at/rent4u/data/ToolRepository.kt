@@ -1,5 +1,7 @@
 package at.rent4u.data
 
+import android.util.Log
+
 import android.os.Build
 import androidx.annotation.RequiresApi
 import at.rent4u.model.Booking
@@ -33,24 +35,54 @@ class ToolRepository @Inject constructor(
     /**
      * Get only a limited number of items.
      */
-    suspend fun getToolsPaged(limit: Long = 10): List<Pair<String, Tool>> {
+    suspend fun getToolsPaged(limit: Long? = 10): List<Pair<String, Tool>> {
         return try {
-            val query = firestore.collection("tools")
-                // Need to order by a field that exists in all documents and is unique. Currently using createdAt
+            // 1) Log entry into method
+            Log.d("ToolRepository", "getToolsPaged called with limit = $limit, lastVisibleSnapshot = $lastVisibleSnapshot")
+
+            // Build base query
+            val baseQuery = firestore.collection("tools")
                 .orderBy("createdAt")
-                .let {
-                    if (lastVisibleSnapshot != null) it.startAfter(lastVisibleSnapshot!!)
-                    else it
-                }
-                .limit(limit)
+            Log.d("ToolRepository", "Base query on 'tools' created")
 
-            val result = query.get().await()
-            lastVisibleSnapshot = result.documents.lastOrNull()
-
-            result.documents.mapNotNull { doc ->
-                doc.toObject(Tool::class.java)?.let { tool -> doc.id to tool }
+            // If paginating, start after lastVisibleSnapshot
+            val pagedQuery = if (lastVisibleSnapshot != null) {
+                Log.d("ToolRepository", "lastVisibleSnapshot is not null, starting after it")
+                baseQuery.startAfter(lastVisibleSnapshot!!)
+            } else {
+                Log.d("ToolRepository", "lastVisibleSnapshot is null, using baseQuery")
+                baseQuery
             }
+
+            // Apply limit only if not null
+            val finalQuery = if (limit != null) {
+                Log.d("ToolRepository", "Applying limit of $limit")
+                pagedQuery.limit(limit)
+            } else {
+                Log.d("ToolRepository", "No limit applied (limit is null)")
+                pagedQuery
+            }
+
+            // 2) Log the final query before execution
+            Log.d("ToolRepository", "Executing finalQuery: $finalQuery")
+
+            val result = finalQuery.get().await()
+            Log.d("ToolRepository", "QuerySnapshot received, size = ${result.size()}")
+
+            // Update lastVisibleSnapshot for paging
+            lastVisibleSnapshot = result.documents.lastOrNull()
+            Log.d("ToolRepository", "lastVisibleSnapshot updated to = $lastVisibleSnapshot")
+
+            // Map each document to Pair<id, Tool>
+            val mapped = result.documents.mapNotNull { doc ->
+                val toolObj = doc.toObject(Tool::class.java)
+                Log.d("ToolRepository", "Document ID: ${doc.id}, toObject returned: $toolObj")
+                toolObj?.let { tool -> doc.id to tool }
+            }
+            Log.d("ToolRepository", "Mapped results size = ${mapped.size}")
+            mapped
         } catch (e: Exception) {
+            Log.e("ToolRepository", "Exception in getToolsPaged: ${e.localizedMessage}", e)
             emptyList()
         }
     }

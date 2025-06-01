@@ -1,5 +1,7 @@
 package at.rent4u.screens
 
+import android.util.Log
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,36 +41,36 @@ fun ToolDetailsScreen(
     viewModel: ToolListViewModel = hiltViewModel(),
     onEditClick: (Tool) -> Unit
 ) {
-    val toolsState = viewModel.tools.collectAsState()
-    val fallbackToolState = viewModel.singleTool.collectAsState()
-
-    // will be true if the viewModel is loading one tool from the database
-    // when the fetchToolIById method is executed
-    val isFetchingTool = viewModel.isFetchingTool.collectAsState()
-
-    // this will be set if the tool was already loaded before
-    val toolFromList = toolsState.value.find { it.first == toolId }?.second
-
-    // this will be used if the tool was not already loaded
-    val fallbackTool = fallbackToolState.value?.takeIf { it.first == toolId }?.second
-
-    val tool = toolFromList ?: fallbackTool
-    val isLoading = toolsState.value.isEmpty() && fallbackTool == null
-
-    val isAdminState = viewModel.isAdmin.collectAsState()
-    val isAdmin = isAdminState.value
-    // trigger fetch if needed
+    // 1) As soon as this screen appears, ask the VM to load exactly this one tool
     LaunchedEffect(toolId) {
-        if (toolFromList == null && fallbackTool == null) {
-            viewModel.fetchToolIById(toolId)
-        }
+        Log.d("ToolDetails", "LaunchedEffect: fetching tool for id = $toolId")
+        viewModel.fetchToolById(toolId)
     }
+
+    // 2) Observe the filteredTools flow, which will contain exactly [toolId -> Tool] once fetch completes
+    val tools by viewModel.filteredTools.collectAsState()
+    Log.d("ToolDetails", "Collected filteredTools: size = ${tools.size}, contents = $tools")
+    val isFetchingTool by viewModel.isFetchingTool.collectAsState()
+    Log.d("ToolDetails", "isFetchingTool = $isFetchingTool")
+
+    // 3) Extract the actual Tool object (or null if not found)
+    val tool: Tool? = tools.find { it.first == toolId }?.second
+    Log.d("ToolDetails", "Resolved tool = $tool")
+
+    // 4) Determine loading state
+    val isLoading = tools.isEmpty() && isFetchingTool
+    Log.d("ToolDetails", "isLoading = $isLoading")
+
+    // 5) Check admin permission
+    val isAdmin by viewModel.isAdmin.collectAsState()
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { innerPadding ->
         when {
-            isLoading || isFetchingTool.value -> {
+            // 6a) Still loading from Firestore?
+            isLoading -> {
+                Log.d("ToolDetails", "Displaying loading spinner")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -78,13 +81,15 @@ fun ToolDetailsScreen(
                 }
             }
 
+            // 6b) Tool found → render details
             tool != null -> {
+                Log.d("ToolDetails", "Displaying tool details for id = $toolId")
                 Column(
                     modifier = Modifier
                         .padding(innerPadding)
                         .verticalScroll(rememberScrollState())
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 ) {
                     AsyncImage(
                         model = tool.image,
@@ -112,7 +117,7 @@ fun ToolDetailsScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    if (tool.availabilityStatus == "Available") {
+                    if (tool.availabilityStatus.equals("Available", ignoreCase = true)) {
                         Button(
                             onClick = {
                                 navController.navigate(Screen.Booking.createRoute(toolId))
@@ -131,16 +136,21 @@ fun ToolDetailsScreen(
                     }
 
                     if (isAdmin) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { onEditClick(tool) }) {
+                        Button(onClick = {
+                            Log.d("ToolDetails", "Edit clicked for toolId = $toolId")
+                            navController.navigate(Screen.AdminToolUpdate.createRoute(toolId))
+                        }) {
                             Text("Edit")
                         }
                     }
+
                     Spacer(modifier = Modifier.height(80.dp))
                 }
             }
 
+            // 6c) Neither loading nor tool found ⇒ show “not found”
             else -> {
+                Log.d("ToolDetails", "Tool not found for id = $toolId")
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

@@ -1,5 +1,7 @@
 package at.rent4u.screens
 
+import android.util.Log
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,10 +42,15 @@ fun AdminToolCreateScreen(
     val viewModel: AdminToolViewModel = hiltViewModel()
     val context = LocalContext.current
 
+    Log.d("AdminToolCreate", "Composing AdminToolCreateScreen")
+
     var tool by remember { mutableStateOf(Tool()) }
+    var rentalRateText by remember { mutableStateOf("") }
     val isLoading by viewModel.isLoading.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
     val creationSuccess by viewModel.creationSuccess.collectAsState()
+
+    Log.d("AdminToolCreate", "State - isLoading: $isLoading, toastMessage: $toastMessage, creationSuccess: $creationSuccess")
 
     val scrollState = rememberScrollState()
     val isFormValid = tool.type.isNotBlank()
@@ -83,23 +90,37 @@ fun AdminToolCreateScreen(
                 DropDownField(
                     "Power Source",
                     listOf("Electric", "Battery", "Manual", "Hybrid", "Pneumatic", "Hydraulic", "Solar", "Mechanical"),
-                    tool.powerSource)
-                { tool = tool.copy(powerSource = it) }
+                    tool.powerSource
+                ) { tool = tool.copy(powerSource = it) }
 
                 DropDownField(
                     "Fuel Type",
                     listOf("Gasoline", "Diesel", "Electric"),
-                    tool.fuelType)
-                { tool = tool.copy(fuelType = it) }
+                    tool.fuelType
+                ) { tool = tool.copy(fuelType = it) }
 
                 LabeledField("Voltage", tool.voltage) { tool = tool.copy(voltage = it) }
-                LabeledField("Rental Rate", tool.rentalRate) { tool = tool.copy(rentalRate = it) }
+                OutlinedTextField(
+                    value = rentalRateText,
+                    onValueChange = { rentalRateText = it },
+                    label = { Text("Rental Rate") },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                )
                 LabeledField("Image URL", tool.image) { tool = tool.copy(image = it) }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
-                    onClick = { viewModel.createTool(tool) },
+                    onClick = {
+                        Log.d("AdminToolCreate", "Create button clicked with tool: $tool")
+                        // Parse rentalRateText into a Double; default to 0.0 if invalid
+                        val parsedRate = rentalRateText.toDoubleOrNull() ?: 0.0
+                        tool = tool.copy(rentalRate = parsedRate)
+                        viewModel.createTool(tool)
+                    },
                     modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .padding(bottom = 24.dp),
@@ -124,7 +145,9 @@ fun AdminToolCreateScreen(
 
 
             LaunchedEffect(creationSuccess) {
+                Log.d("AdminToolCreate", "creationSuccess changed: $creationSuccess")
                 if (creationSuccess == true) {
+                    Log.d("AdminToolCreate", "Navigating to ToolList because creation succeeded")
                     navController.navigate(Screen.ToolList.route) {
                         popUpTo(Screen.AdminToolCreate.route) { inclusive = true }
                     }

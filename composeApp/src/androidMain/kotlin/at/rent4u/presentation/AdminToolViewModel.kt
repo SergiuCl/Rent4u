@@ -54,9 +54,7 @@ class AdminToolViewModel @Inject constructor(
             return
         }
 
-        val rentalRateString = tool.rentalRate.replace("€", "").trim()
-        val isNumeric = rentalRateString.toDoubleOrNull() != null
-        if (!isNumeric) {
+        if (tool.rentalRate < 0.0) {
             _toastMessage.value = "Please enter a valid number for the rental rate."
             return
         }
@@ -112,20 +110,6 @@ class AdminToolViewModel @Inject constructor(
             _editingTool.value =
                 repository.getToolById(toolId) // you need this method in ToolRepository
             _isLoading.value = false
-        }
-    }
-
-    private val _isAdmin = MutableStateFlow(false)
-    val isAdmin: StateFlow<Boolean> = _isAdmin
-
-    init {
-        // Retrieve toolId from savedStateHandle
-        val toolId: String? = savedStateHandle["toolId"]
-        if (toolId != null) {
-            // Kick off loading the tool using the existing loadTool function
-            loadTool(toolId)
-        } else {
-            Log.e("AdminToolUpdateVM", "No toolId passed in savedStateHandle")
         }
     }
 }
