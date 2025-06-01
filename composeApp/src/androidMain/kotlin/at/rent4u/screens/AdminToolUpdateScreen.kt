@@ -31,6 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.presentation.AdminToolViewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,17 +117,66 @@ fun AdminToolUpdateScreen(
                         .verticalScroll(rememberScrollState())
                         .fillMaxSize()
                 ) {
-                    LabeledField("Brand", brand) { brand = it }
-                    LabeledField("Model Number", modelNumber) { modelNumber = it }
-                    LabeledField("Description", description) { description = it }
-                    LabeledField("Availability Status", availabilityStatus) { availabilityStatus = it }
-                    LabeledField("Power Source", powerSource) { powerSource = it }
+                    Text("Edit Tool Details", style = MaterialTheme.typography.headlineMedium)
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Standardized fields with dropdowns matching create screen
+                    
+                    // Availability Status - Dropdown
+                    DropDownField(
+                        "Availability Status",
+                        listOf("Available", "Unavailable"),
+                        availabilityStatus
+                    ) { availabilityStatus = it }
+                    
+                    // Type - Regular field
                     LabeledField("Type", type) { type = it }
-                    LabeledField("Voltage", voltage) { voltage = it }
-                    LabeledField("Fuel Type", fuelType) { fuelType = it }
+                    
+                    // Brand - Regular field
+                    LabeledField("Brand", brand) { brand = it }
+                    
+                    // Model Number - Regular field
+                    LabeledField("Model Number", modelNumber) { modelNumber = it }
+                    
+                    // Description - Regular field
+                    LabeledField("Description", description) { description = it }
+                    
+                    // Weight - Regular field
                     LabeledField("Weight", weight) { weight = it }
+                    
+                    // Dimensions - Regular field
                     LabeledField("Dimensions", dimensions) { dimensions = it }
-                    LabeledField("Rental Rate (€)", rentalRate) { rentalRate = it }
+                    
+                    // Power Source - Dropdown
+                    DropDownField(
+                        "Power Source",
+                        listOf("Electric", "Battery", "Manual", "Hybrid", "Pneumatic", "Hydraulic", "Solar", "Mechanical"),
+                        powerSource
+                    ) { powerSource = it }
+                    
+                    // Fuel Type - Dropdown
+                    DropDownField(
+                        "Fuel Type",
+                        listOf("Gasoline", "Diesel", "Electric"),
+                        fuelType
+                    ) { fuelType = it }
+                    
+                    // Voltage - Regular field
+                    LabeledField("Voltage", voltage) { voltage = it }
+                    
+                    // Rental Rate - Regular field
+                    OutlinedTextField(
+                        value = rentalRate,
+                        onValueChange = { rentalRate = it },
+                        label = { Text("Rental Rate (€)") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    )
+                    
+                    // Image URL - Regular field
                     LabeledField("Image URL", imageUrl) { imageUrl = it }
 
                     Spacer(modifier = Modifier.height(16.dp))
