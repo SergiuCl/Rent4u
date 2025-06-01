@@ -40,6 +40,12 @@ class ToolRepository @Inject constructor(
             // 1) Log entry into method
             Log.d("ToolRepository", "getToolsPaged called with limit = $limit, lastVisibleSnapshot = $lastVisibleSnapshot")
 
+            // Reset lastVisibleSnapshot when loading all tools at once
+            if (limit == null) {
+                lastVisibleSnapshot = null
+                Log.d("ToolRepository", "Reset lastVisibleSnapshot for full data load")
+            }
+
             // Build base query
             val baseQuery = firestore.collection("tools")
                 .orderBy("createdAt")
@@ -69,15 +75,57 @@ class ToolRepository @Inject constructor(
             val result = finalQuery.get().await()
             Log.d("ToolRepository", "QuerySnapshot received, size = ${result.size()}")
 
-            // Update lastVisibleSnapshot for paging
-            lastVisibleSnapshot = result.documents.lastOrNull()
-            Log.d("ToolRepository", "lastVisibleSnapshot updated to = $lastVisibleSnapshot")
+            // Update lastVisibleSnapshot for paging only when using pagination
+            if (limit != null) {
+                lastVisibleSnapshot = result.documents.lastOrNull()
+                Log.d("ToolRepository", "lastVisibleSnapshot updated to = $lastVisibleSnapshot")
+            }
 
             // Map each document to Pair<id, Tool>
             val mapped = result.documents.mapNotNull { doc ->
-                val toolObj = doc.toObject(Tool::class.java)
-                Log.d("ToolRepository", "Document ID: ${doc.id}, toObject returned: $toolObj")
-                toolObj?.let { tool -> doc.id to tool }
+                try {
+                    // Check if rentalRate is a String and convert it if needed
+                    if (doc.contains("rentalRate") && doc.get("rentalRate") is String) {
+                        val rentalRateString = doc.getString("rentalRate")
+                        val rentalRateDouble = rentalRateString?.toDoubleOrNull() ?: 0.0
+
+                        // Create a new map with the converted value
+                        val data = doc.data ?: emptyMap()
+                        val updatedData = data.toMutableMap()
+                        updatedData["rentalRate"] = rentalRateDouble
+
+                        // Update the document in Firestore to fix the type issue
+                        firestore.collection("tools").document(doc.id).update("rentalRate", rentalRateDouble)
+
+                        // Convert using the updated data
+                        val tool = Tool(
+                            id = doc.id,
+                            brand = doc.getString("brand") ?: "",
+                            modelNumber = doc.getString("modelNumber") ?: "",
+                            description = doc.getString("description") ?: "",
+                            powerSource = doc.getString("powerSource") ?: "",
+                            weight = doc.getString("weight") ?: "",
+                            dimensions = doc.getString("dimensions") ?: "",
+                            fuelType = doc.getString("fuelType") ?: "",
+                            voltage = doc.getString("voltage") ?: "",
+                            availabilityStatus = doc.getString("availabilityStatus") ?: "",
+                            rentalRate = rentalRateDouble,
+                            image = doc.getString("image") ?: "",
+                            createdAt = doc.getLong("createdAt") ?: 0,
+                            type = doc.getString("type") ?: ""
+                        )
+
+                        doc.id to tool
+                    } else {
+                        // Normal conversion if rentalRate is already a number
+                        val toolObj = doc.toObject(Tool::class.java)
+                        Log.d("ToolRepository", "Document ID: ${doc.id}, toObject returned: $toolObj")
+                        toolObj?.let { tool -> doc.id to tool }
+                    }
+                } catch (e: Exception) {
+                    Log.e("ToolRepository", "Error converting document ${doc.id}: ${e.message}", e)
+                    null
+                }
             }
             Log.d("ToolRepository", "Mapped results size = ${mapped.size}")
             mapped
@@ -90,8 +138,37 @@ class ToolRepository @Inject constructor(
     suspend fun getToolById(id: String): Tool? {
         return try {
             val doc = firestore.collection("tools").document(id).get().await()
-            doc.toObject(Tool::class.java)?.copy(id = doc.id)
+
+            // Check if rentalRate is a String and convert it if needed
+            if (doc.contains("rentalRate") && doc.get("rentalRate") is String) {
+                val rentalRateString = doc.getString("rentalRate")
+                val rentalRateDouble = rentalRateString?.toDoubleOrNull() ?: 0.0
+
+                // Update the document in Firestore to fix the type issue
+                firestore.collection("tools").document(id).update("rentalRate", rentalRateDouble)
+
+                // Create the Tool object manually with the correct type
+                Tool(
+                    id = doc.id,
+                    brand = doc.getString("brand") ?: "",
+                    modelNumber = doc.getString("modelNumber") ?: "",
+                    description = doc.getString("description") ?: "",
+                    powerSource = doc.getString("powerSource") ?: "",
+                    weight = doc.getString("weight") ?: "",
+                    dimensions = doc.getString("dimensions") ?: "",
+                    fuelType = doc.getString("fuelType") ?: "",
+                    voltage = doc.getString("voltage") ?: "",
+                    availabilityStatus = doc.getString("availabilityStatus") ?: "",
+                    rentalRate = rentalRateDouble,
+                    image = doc.getString("image") ?: "",
+                    createdAt = doc.getLong("createdAt") ?: 0,
+                    type = doc.getString("type") ?: ""
+                )
+            } else {
+                doc.toObject(Tool::class.java)?.copy(id = doc.id)
+            }
         } catch (e: Exception) {
+            Log.e("ToolRepository", "Error in getToolById: ${e.message}", e)
             null
         }
     }
@@ -220,3 +297,4 @@ class ToolRepository @Inject constructor(
         }
     }
 }
+

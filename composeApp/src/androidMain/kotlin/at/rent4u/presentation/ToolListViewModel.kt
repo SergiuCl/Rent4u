@@ -42,6 +42,10 @@ class ToolListViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            // Check if the current user is an admin
+            _isAdmin.value = userRepository.isCurrentUserAdmin()
+            Log.d("ToolListVM", "User admin status: ${_isAdmin.value}")
+
             loadMoreTools()
         }
     }
@@ -116,3 +120,4 @@ data class ToolFilter(
     val minPriceText: String = "",
     val maxPriceText: String = ""
 )
+
