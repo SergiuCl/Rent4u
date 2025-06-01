@@ -20,11 +20,11 @@ class ToolRepository @Inject constructor(
 
     suspend fun addTool(tool: Tool): Pair<Boolean, String?> {
         return try {
-            val docRef = firestore.collection("tools").add(tool).await()
-            val toolWithId = tool.copy(id = docRef.id)
+            val docId = firestore.collection("tools").document().id
+            val toolWithId = tool.copy(id = docId)
 
-            // Optionally update the document with the ID field
-            firestore.collection("tools").document(docRef.id).set(toolWithId).await()
+            // Create the document with the pre-generated ID and tool object
+            firestore.collection("tools").document(docId).set(toolWithId).await()
 
             true to null
         } catch (e: Exception) {
