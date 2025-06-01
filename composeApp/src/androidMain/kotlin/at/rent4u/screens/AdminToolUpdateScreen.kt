@@ -82,6 +82,9 @@ fun AdminToolUpdateScreen(
             imageUrl = tool.image
         }
     }
+    
+    // Track update success
+    val creationSuccess by viewModel.creationSuccess.collectAsState()
 
     // Wrap everything in a Scaffold so we get the standard top‐app‐bar
     Scaffold(
@@ -151,9 +154,6 @@ fun AdminToolUpdateScreen(
                             Log.d("AdminToolUpdate", "Calling updateTool with id=${toolState!!.id} and data=$updatedData")
                             // Tell ViewModel to save
                             viewModel.updateTool(toolState!!.id, updatedData)
-                            // After saving, pop back to detail screen
-                            navController.popBackStack()
-                            Log.d("AdminToolUpdate", "Navigated back after update")
                         }) {
                             Text("Save")
                         }
@@ -169,6 +169,20 @@ fun AdminToolUpdateScreen(
                     }
                 }
             }
+        }
+    }
+    
+    // Handle successful update navigation
+    LaunchedEffect(creationSuccess) {
+        if (creationSuccess == true) {
+            Log.d("AdminToolUpdate", "Update successful, setting refresh flag and navigating back")
+            
+            // Set the refresh flag on the previous backstack entry BEFORE navigating back
+            navController.previousBackStackEntry?.savedStateHandle?.set("REFRESH_TOOL", toolId)
+            navController.popBackStack()
+            
+            // Clear the success state
+            viewModel.clearCreationSuccess()
         }
     }
 }

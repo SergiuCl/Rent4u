@@ -44,7 +44,19 @@ fun ToolDetailsScreen(
     // 1) As soon as this screen appears, ask the VM to load exactly this one tool
     LaunchedEffect(toolId) {
         Log.d("ToolDetails", "LaunchedEffect: fetching tool for id = $toolId")
-        viewModel.fetchToolById(toolId)
+        viewModel.fetchToolById(toolId, forceRefresh = true) // Always force refresh when entering details screen
+    }
+
+    // Check if we need to refresh the tool when returning from the edit screen
+    LaunchedEffect(Unit) {
+        val refreshToolId = navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.remove<String>("REFRESH_TOOL")
+
+        if (refreshToolId == toolId) {
+            Log.d("ToolDetails", "Detected need to refresh tool ID: $toolId")
+            viewModel.refreshTool(toolId)
+        }
     }
 
     // 2) Observe the filteredTools flow, which will contain exactly [toolId -> Tool] once fetch completes
@@ -148,7 +160,7 @@ fun ToolDetailsScreen(
                 }
             }
 
-            // 6c) Neither loading nor tool found ⇒ show “not found”
+            // 6c) Neither loading nor tool found ⇒ show "not found"
             else -> {
                 Log.d("ToolDetails", "Tool not found for id = $toolId")
                 Box(

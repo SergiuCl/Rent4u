@@ -38,8 +38,6 @@ class ToolListViewModel @Inject constructor(
     private val _filteredTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
     val filteredTools: StateFlow<List<Pair<String, Tool>>> = _filteredTools.asStateFlow()
 
-    // Pagination removed: hasMoreItems, lastDoc, etc.
-
     init {
         viewModelScope.launch {
             // Check if the current user is an admin
@@ -92,24 +90,45 @@ class ToolListViewModel @Inject constructor(
         }
     }
 
-    fun fetchToolById(toolId: String) {
+    fun fetchToolById(toolId: String, forceRefresh: Boolean = false) {
         val alreadyLoaded = _tools.value.find { it.first == toolId }
-        if (alreadyLoaded != null) {
-            // If we already have it in the current list, just emit it immediately
+        if (alreadyLoaded != null && !forceRefresh) {
+            // If we already have it in the current list and no refresh is needed, emit it immediately
             _filteredTools.value = listOf(alreadyLoaded)
             return
         }
 
         viewModelScope.launch {
             _isFetchingTool.value = true
+            Log.d("ToolListVM", "Fetching tool with ID: $toolId, forceRefresh=$forceRefresh")
+            
             val tool = toolRepository.getToolById(toolId)
             if (tool != null) {
+                Log.d("ToolListVM", "Retrieved tool: $tool")
+                
+                // Update the tool in our local cache
+                val updatedTools = _tools.value.map {
+                    if (it.first == toolId) toolId to tool else it
+                }.toMutableList()
+                
+                // Add the tool if it wasn't in our list
+                if (!updatedTools.any { it.first == toolId }) {
+                    updatedTools.add(toolId to tool)
+                }
+                
+                _tools.value = updatedTools
                 _filteredTools.value = listOf(toolId to tool)
             } else {
+                Log.d("ToolListVM", "Tool not found with ID: $toolId")
                 _filteredTools.value = emptyList()
             }
             _isFetchingTool.value = false
         }
+    }
+
+    fun refreshTool(toolId: String) {
+        Log.d("ToolListVM", "Refreshing tool with ID: $toolId")
+        fetchToolById(toolId, forceRefresh = true)
     }
 }
 
@@ -120,4 +139,3 @@ data class ToolFilter(
     val minPriceText: String = "",
     val maxPriceText: String = ""
 )
-

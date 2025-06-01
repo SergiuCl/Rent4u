@@ -89,15 +89,23 @@ class AdminToolViewModel @Inject constructor(
             }
 
             val (success, error) = repository.updateTool(toolId, updatedData)
-            _isLoading.value = false
 
             if (success) {
+                // Force reload the tool data from Firestore to ensure we have the latest
+                val updatedTool = repository.getToolById(toolId)
+                _editingTool.value = updatedTool
+                _tool.value = updatedTool
+                
+                Log.d("AdminToolViewModel", "Tool updated successfully: $updatedTool")
                 _toastMessage.value = "Tool updated successfully!"
                 _creationSuccess.value = true
             } else {
-                _toastMessage.value = "Failed to update tool."
+                Log.e("AdminToolViewModel", "Failed to update tool: $error")
+                _toastMessage.value = "Failed to update tool: ${error ?: "Unknown error"}"
                 _creationSuccess.value = false
             }
+
+            _isLoading.value = false
         }
     }
 
@@ -107,9 +115,16 @@ class AdminToolViewModel @Inject constructor(
     fun loadTool(toolId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            _editingTool.value =
-                repository.getToolById(toolId) // you need this method in ToolRepository
-            _isLoading.value = false
+            try {
+                val tool = repository.getToolById(toolId)
+                _editingTool.value = tool
+                Log.d("AdminToolViewModel", "Loaded tool: $tool")
+            } catch(e: Exception) {
+                Log.e("AdminToolViewModel", "Error loading tool: ${e.message}", e)
+                _toastMessage.value = "Failed to load tool: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }
