@@ -1,35 +1,17 @@
 package at.rent4u.screens
 
 import android.util.Log
-
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.model.Tool
@@ -44,18 +26,17 @@ fun AdminToolCreateScreen(
 
     Log.d("AdminToolCreate", "Composing AdminToolCreateScreen")
 
-    var tool by remember { mutableStateOf(Tool()) }
-    var rentalRateText by remember { mutableStateOf("") }
     val isLoading by viewModel.isLoading.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
     val creationSuccess by viewModel.creationSuccess.collectAsState()
 
     Log.d("AdminToolCreate", "State - isLoading: $isLoading, toastMessage: $toastMessage, creationSuccess: $creationSuccess")
 
-    val scrollState = rememberScrollState()
-    val isFormValid = tool.type.isNotBlank()
-            && tool.brand.isNotBlank()
-            && tool.availabilityStatus.isNotBlank()
+    // Show toast messages
+    toastMessage?.let {
+        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        viewModel.clearToastMessage()
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
@@ -65,84 +46,26 @@ fun AdminToolCreateScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .verticalScroll(scrollState)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Add New Tool", style = MaterialTheme.typography.headlineMedium)
-
-                DropDownField(
-                    "Availability Status",
-                    listOf("Available", "Unavailable"),
-                    tool.availabilityStatus
-                ) { tool = tool.copy(availabilityStatus = it) }
-
-                LabeledField("Type", tool.type) { tool = tool.copy(type = it) }
-                LabeledField("Brand", tool.brand) { tool = tool.copy(brand = it) }
-                LabeledField("Model Number", tool.modelNumber) { tool = tool.copy(modelNumber = it) }
-                LabeledField("Description", tool.description) { tool = tool.copy(description = it) }
-                LabeledField("Weight", tool.weight) { tool = tool.copy(weight = it) }
-                LabeledField("Dimensions", tool.dimensions) { tool = tool.copy(dimensions = it) }
-
-                DropDownField(
-                    "Power Source",
-                    listOf("Electric", "Battery", "Manual", "Hybrid", "Pneumatic", "Hydraulic", "Solar", "Mechanical"),
-                    tool.powerSource
-                ) { tool = tool.copy(powerSource = it) }
-
-                DropDownField(
-                    "Fuel Type",
-                    listOf("Gasoline", "Diesel", "Electric"),
-                    tool.fuelType
-                ) { tool = tool.copy(fuelType = it) }
-
-                LabeledField("Voltage", tool.voltage) { tool = tool.copy(voltage = it) }
-                OutlinedTextField(
-                    value = rentalRateText,
-                    onValueChange = { rentalRateText = it },
-                    label = { Text("Rental Rate") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                )
-                LabeledField("Image URL", tool.image) { tool = tool.copy(image = it) }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = {
-                        Log.d("AdminToolCreate", "Create button clicked with tool: $tool")
-                        // Parse rentalRateText into a Double; default to 0.0 if invalid
-                        val parsedRate = rentalRateText.toDoubleOrNull() ?: 0.0
-                        tool = tool.copy(rentalRate = parsedRate)
-                        viewModel.createTool(tool)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(bottom = 24.dp),
-                    enabled = !isLoading && isFormValid,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.LightGray,
-                        contentColor = Color.Black
-                    )
-                ) {
-                    Text("Create")
+            // Use shared form component
+            AdminToolForm(
+                initialTool = Tool(),
+                title = "Add New Tool",
+                isLoading = isLoading,
+                isUpdate = false,
+                onSave = { tool, rentalRateText ->
+                    // Parse rentalRateText into a Double; default to 0.0 if invalid
+                    val parsedRate = rentalRateText.toDoubleOrNull() ?: 0.0
+                    val updatedTool = tool.copy(rentalRate = parsedRate)
+                    viewModel.createTool(updatedTool)
+                },
+                onCancel = {
+                    navController.popBackStack()
                 }
-            }
+            )
 
             if (isLoading) {
                 LoadingScreen()
             }
-
-            toastMessage?.let {
-                Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                viewModel.clearToastMessage()
-            }
-
 
             LaunchedEffect(creationSuccess) {
                 Log.d("AdminToolCreate", "creationSuccess changed: $creationSuccess")
@@ -157,17 +80,4 @@ fun AdminToolCreateScreen(
             }
         }
     }
-}
-
-@Composable
-fun LabeledField(label: String, value: String, onChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onChange,
-        label = { Text(label) },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
-    )
 }
