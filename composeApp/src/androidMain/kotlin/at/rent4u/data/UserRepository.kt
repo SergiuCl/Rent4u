@@ -176,6 +176,116 @@ class UserRepository @Inject constructor(
         }
     }
 
+    // Update only basic user profile details (no email/password)
+    suspend fun updateUserProfileDetails(
+        userId: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        phone: String
+    ) {
+        val userData = mapOf(
+            "username" to username,
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "phone" to phone
+        )
+
+        // Update Firestore user data
+        firestore.collection("users").document(userId).update(userData).await()
+    }
+
+    // Specifically handle email changes with re-authentication
+    suspend fun updateUserEmail(
+        userId: String,
+        newEmail: String,
+        password: String
+    ) {
+        val currentUser = auth.currentUser ?: throw Exception("No logged-in user")
+        val currentEmail = currentUser.email ?: throw Exception("Current user has no email")
+
+        if (newEmail.isBlank()) {
+            throw Exception("New email cannot be empty")
+        }
+
+        if (password.isEmpty()) {
+            throw Exception("Password is required to change email")
+        }
+
+        try {
+            // Re-authenticate with current credentials
+            val credential = EmailAuthProvider.getCredential(currentEmail, password)
+            try {
+                currentUser.reauthenticate(credential).await()
+            } catch (e: Exception) {
+                throw Exception("Authentication failed: Incorrect password")
+            }
+
+            try {
+                // Update email in Firebase Authentication
+                currentUser.updateEmail(newEmail).await()
+
+                // Update email in Firestore
+                firestore.collection("users").document(userId).update("email", newEmail).await()
+
+                try {
+                    // Send verification email
+                    currentUser.sendEmailVerification().await()
+                } catch (e: Exception) {
+                    // Just log this error but don't throw
+                    Log.w("UserRepository", "Failed to send verification email: ${e.message}")
+                }
+            } catch (e: Exception) {
+                throw Exception("Failed to update email: ${e.message}")
+            }
+        } catch (e: Exception) {
+            // Throw the specific error
+            throw e
+        }
+    }
+
+    // Specifically handle password changes with re-authentication
+    suspend fun updateUserPassword(
+        userId: String,
+        currentPassword: String,
+        newPassword: String
+    ) {
+        val currentUser = auth.currentUser ?: throw Exception("No logged-in user")
+        val email = currentUser.email ?: throw Exception("Current user has no email")
+
+        if (currentPassword.isEmpty()) {
+            throw Exception("Current password is required")
+        }
+
+        if (newPassword.isEmpty()) {
+            throw Exception("New password cannot be empty")
+        }
+
+        if (newPassword.length < 6) {
+            throw Exception("Password must be at least 6 characters long")
+        }
+
+        try {
+            // Re-authenticate with current credentials
+            val credential = EmailAuthProvider.getCredential(email, currentPassword)
+            try {
+                currentUser.reauthenticate(credential).await()
+            } catch (e: Exception) {
+                throw Exception("Authentication failed: Incorrect current password")
+            }
+
+            try {
+                // Update password in Firebase Authentication
+                currentUser.updatePassword(newPassword).await()
+            } catch (e: Exception) {
+                throw Exception("Failed to update password: ${e.message}")
+            }
+        } catch (e: Exception) {
+            // Throw the specific error
+            throw e
+        }
+    }
+
     suspend fun deleteUser(userId: String) {
         firestore.collection("users").document(userId).delete().await()
         auth.currentUser?.delete()?.await()

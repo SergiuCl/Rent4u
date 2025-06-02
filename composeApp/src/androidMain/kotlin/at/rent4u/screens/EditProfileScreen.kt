@@ -8,6 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,15 +26,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.presentation.UserViewModel
 import at.rent4u.screens.BottomNavBar
+import at.rent4u.screens.ChangeEmailDialog
+import at.rent4u.screens.ChangePasswordDialog
 import at.rent4u.screens.Screen
 import at.rent4u.screens.DeleteConfirmationDialog
-import kotlinx.coroutines.launch // Import for launching coroutines
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditProfileScreen(navController: NavController) {
@@ -40,14 +47,17 @@ fun EditProfileScreen(navController: NavController) {
     var username by remember { mutableStateOf("") }
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") } // Read-only now
     var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") } // Added password field
-    var originalEmail by remember { mutableStateOf("") } // To track if email was changed
-    val coroutineScope = rememberCoroutineScope()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+
+    // New state variables for the email and password change dialogs
+    var showChangeEmailDialog by remember { mutableStateOf(false) }
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         userId = viewModel.getCurrentUserId()
@@ -57,7 +67,6 @@ fun EditProfileScreen(navController: NavController) {
             firstName = userDetails.firstName
             lastName = userDetails.lastName
             email = userDetails.email
-            originalEmail = userDetails.email // Store original email
             phone = userDetails.phone
         }
     }
@@ -71,7 +80,41 @@ fun EditProfileScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            // User banner at the top showing logged in info
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                )
+            ) {
+                Text(
+                    text = "Logged in as $username",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // User Profile Data Section
+            Text(
+                text = "Profile Information",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth(0.9f),
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = username,
@@ -79,7 +122,7 @@ fun EditProfileScreen(navController: NavController) {
                 label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth(0.9f)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = firstName,
@@ -87,7 +130,7 @@ fun EditProfileScreen(navController: NavController) {
                 label = { Text("First Name") },
                 modifier = Modifier.fillMaxWidth(0.9f)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = lastName,
@@ -95,15 +138,7 @@ fun EditProfileScreen(navController: NavController) {
                 label = { Text("Last Name") },
                 modifier = Modifier.fillMaxWidth(0.9f)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(0.9f)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = phone,
@@ -111,39 +146,29 @@ fun EditProfileScreen(navController: NavController) {
                 label = { Text("Phone") },
                 modifier = Modifier.fillMaxWidth(0.9f)
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // Password field (only required if email is changed)
-            if (email != originalEmail) {
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password (required to change email)") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(0.9f)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            // Email field (read-only)
+            OutlinedTextField(
+                value = email,
+                onValueChange = { /* Read-only field */ },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(0.9f),
+                readOnly = true
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
+            // Save Profile Button
             Button(
                 onClick = {
                     coroutineScope.launch {
                         try {
-                            viewModel.updateUserDetails(
-                                userId!!, username, firstName, lastName, email, password, phone
+                            viewModel.updateUserProfileDetails(
+                                userId!!, username, firstName, lastName, phone
                             )
-                            if (email.isNotBlank() && email != originalEmail) {
-                                viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
-                                // Log the user out if the email was changed
-                                viewModel.logout()
-                                navController.navigate(Screen.Login.route) {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            } else {
-                                navController.popBackStack()
-                            }
+                            viewModel.setToastMessage("Profile updated successfully")
+                            navController.popBackStack()
                         } catch (e: Exception) {
                             errorMessage = "Failed to update profile: ${e.message}"
                             showErrorDialog = true
@@ -151,24 +176,65 @@ fun EditProfileScreen(navController: NavController) {
                     }
                 },
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .padding(bottom = 16.dp),
+                    .fillMaxWidth(0.9f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary, contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text("Save")
+                Text("Save Profile")
             }
 
+            Spacer(modifier = Modifier.height(32.dp))
+            Divider(modifier = Modifier.fillMaxWidth(0.9f))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Security Section
+            Text(
+                text = "Security Settings",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth(0.9f),
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Change Email Button
             Button(
-                onClick = {
-                    showDeleteConfirmation = true
-                },
+                onClick = { showChangeEmailDialog = true },
+                modifier = Modifier.fillMaxWidth(0.9f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text("Change Email")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Change Password Button
+            Button(
+                onClick = { showChangePasswordDialog = true },
+                modifier = Modifier.fillMaxWidth(0.9f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text("Change Password")
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+            Divider(modifier = Modifier.fillMaxWidth(0.9f))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Delete Account Button
+            Button(
+                onClick = { showDeleteConfirmation = true },
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .padding(bottom = 32.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red, contentColor = Color.White
+                    containerColor = Color.Red,
+                    contentColor = Color.White
                 )
             ) {
                 Text("Delete Account")
@@ -187,9 +253,7 @@ fun EditProfileScreen(navController: NavController) {
                             }
                         }
                     },
-                    onDismiss = {
-                        showDeleteConfirmation = false
-                    }
+                    onDismiss = { showDeleteConfirmation = false }
                 )
             }
 
@@ -201,6 +265,56 @@ fun EditProfileScreen(navController: NavController) {
                     confirmButton = {
                         TextButton(onClick = { showErrorDialog = false }) {
                             Text("OK")
+                        }
+                    }
+                )
+            }
+
+            // Show Change Email Dialog if requested
+            if (showChangeEmailDialog) {
+                ChangeEmailDialog(
+                    currentEmail = email,
+                    onDismiss = { showChangeEmailDialog = false },
+                    onChangeEmail = { newEmail, password ->
+                        coroutineScope.launch {
+                            try {
+                                viewModel.updateUserEmail(userId!!, newEmail, password)
+                                viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
+                                viewModel.logout()
+                                showChangeEmailDialog = false
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } catch (e: Exception) {
+                                errorMessage = "Failed to update email: ${e.message}"
+                                showErrorDialog = true
+                                showChangeEmailDialog = false
+                            }
+                        }
+                    }
+                )
+            }
+
+            // Show Change Password Dialog if requested
+            if (showChangePasswordDialog) {
+                ChangePasswordDialog(
+                    onDismiss = { showChangePasswordDialog = false },
+                    onChangePassword = { currentPassword, newPassword ->
+                        coroutineScope.launch {
+                            try {
+                                viewModel.updateUserPassword(userId!!, currentPassword, newPassword)
+                                viewModel.setToastMessage("Password updated successfully")
+                                showChangePasswordDialog = false
+                                // Optionally log the user out after password change
+                                // viewModel.logout()
+                                // navController.navigate(Screen.Login.route) {
+                                //     popUpTo(0) { inclusive = true }
+                                // }
+                            } catch (e: Exception) {
+                                errorMessage = "Failed to update password: ${e.message}"
+                                showErrorDialog = true
+                                showChangePasswordDialog = false
+                            }
                         }
                     }
                 )

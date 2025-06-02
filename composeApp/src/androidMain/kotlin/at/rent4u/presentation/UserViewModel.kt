@@ -104,4 +104,56 @@ class UserViewModel @Inject constructor(
     suspend fun getUserName(): String? {
         return userRepository.getCurrentUserUsername()
     }
+
+    // Update only basic profile details (no email/password changes)
+    suspend fun updateUserProfileDetails(
+        userId: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        phone: String
+    ) {
+        _isLoading.value = true
+        try {
+            userRepository.updateUserProfileDetails(
+                userId, username, firstName, lastName, phone
+            )
+            _isLoading.value = false
+        } catch (e: Exception) {
+            _isLoading.value = false
+            throw e
+        }
+    }
+
+    // Specifically handle email changes with password verification
+    suspend fun updateUserEmail(
+        userId: String,
+        newEmail: String,
+        password: String
+    ) {
+        _isLoading.value = true
+        try {
+            userRepository.updateUserEmail(userId, newEmail, password)
+            _isLoading.value = false
+        } catch (e: Exception) {
+            _isLoading.value = false
+            throw e
+        }
+    }
+
+    // Specifically handle password changes with current password verification
+    suspend fun updateUserPassword(
+        userId: String,
+        currentPassword: String,
+        newPassword: String
+    ) {
+        _isLoading.value = true
+        try {
+            userRepository.updateUserPassword(userId, currentPassword, newPassword)
+            _isLoading.value = false
+        } catch (e: Exception) {
+            _isLoading.value = false
+            throw e
+        }
+    }
 }
