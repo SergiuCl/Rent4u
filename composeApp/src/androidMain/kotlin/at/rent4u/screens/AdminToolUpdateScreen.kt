@@ -34,7 +34,7 @@ fun AdminToolUpdateScreen(
     viewModel: AdminToolViewModel = hiltViewModel()
 ) {
     Log.d("AdminToolUpdate", "Composing AdminToolUpdateScreen for toolId = $toolId")
-    
+
     // When this composable is first shown (or toolId changes), ask ViewModel to load it
     LaunchedEffect(toolId) {
         Log.d("AdminToolUpdate", "LaunchedEffect: loading tool for id = $toolId")
@@ -44,19 +44,19 @@ fun AdminToolUpdateScreen(
     // Observe the loaded tool from ViewModel
     val toolState by viewModel.editingTool.collectAsState()
     Log.d("AdminToolUpdate", "Collected editingTool: $toolState")
-    
+
     // Track update success and loading state
     val creationSuccess by viewModel.creationSuccess.collectAsState()
     val deletionSuccess by viewModel.deletionSuccess.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    
+
     // For toast messages
     val context = LocalContext.current
     val toastMessage by viewModel.toastMessage.collectAsState()
-    
+
     // For delete confirmation dialog
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    
+
     // Show toast messages
     toastMessage?.let {
         Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -109,7 +109,10 @@ fun AdminToolUpdateScreen(
                             "rentalRate" to (rentalRateText.toDoubleOrNull() ?: 0.0),
                             "image" to tool.image
                         )
-                        Log.d("AdminToolUpdate", "Calling updateTool with id=${toolState!!.id} and data=$updatedData")
+                        Log.d(
+                            "AdminToolUpdate",
+                            "Calling updateTool with id=${toolState!!.id} and data=$updatedData"
+                        )
                         // Tell ViewModel to save
                         viewModel.updateTool(toolState!!.id, updatedData)
                     },
@@ -122,11 +125,12 @@ fun AdminToolUpdateScreen(
                         showDeleteConfirmation = true
                     }
                 )
-                
+
                 // Show delete confirmation dialog if needed
                 if (showDeleteConfirmation) {
                     DeleteConfirmationDialog(
-                        toolName = "${toolState!!.brand} ${toolState!!.modelNumber}",
+                        entityType = "tool",
+                        entityName = "${toolState!!.brand} ${toolState!!.modelNumber}",
                         onConfirm = {
                             viewModel.deleteTool(toolState!!.id)
                             showDeleteConfirmation = false
@@ -139,38 +143,38 @@ fun AdminToolUpdateScreen(
             }
         }
     }
-    
+
     // Handle successful update navigation
     LaunchedEffect(creationSuccess) {
         if (creationSuccess == true) {
             Log.d("AdminToolUpdate", "Update successful, setting refresh flag and navigating back")
-            
+
             // Set the refresh flag on the previous backstack entry BEFORE navigating back
             navController.previousBackStackEntry?.savedStateHandle?.set("REFRESH_TOOL", toolId)
             navController.popBackStack()
-            
+
             // Clear the success state
             viewModel.clearCreationSuccess()
         }
     }
-    
+
     // Handle successful deletion navigation
     LaunchedEffect(deletionSuccess) {
         if (deletionSuccess == true) {
             Log.d("AdminToolUpdate", "Delete successful, navigating to tool list")
-            
+
             // Set refresh flag in the tool list screen's saved state
             // Find the ToolList entry in the backstack
             navController.getBackStackEntry(Screen.ToolList.route).savedStateHandle.set(
                 "REFRESH_TOOLS_LIST", true
             )
-            
+
             // After deletion, navigate back to tool list
             navController.navigate(Screen.ToolList.route) {
                 // Pop up to tool list including the tool list screen (will recreate it)
                 popUpTo(Screen.ToolList.route) { inclusive = true }
             }
-            
+
             // Clear the success state
             viewModel.clearDeletionSuccess()
         }

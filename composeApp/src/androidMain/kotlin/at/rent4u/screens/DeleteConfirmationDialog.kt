@@ -24,18 +24,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DeleteConfirmationDialog(
-    toolName: String,
+    entityType: String,          // e.g., "Tool" or "User"
+    entityName: String,          // the specific name
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
     var confirmText by remember { mutableStateOf("") }
     val isConfirmEnabled = confirmText.trim().equals("yes", ignoreCase = true)
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Delete Tool",
+                "Delete $entityType",
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.Red
             )
@@ -43,10 +44,10 @@ fun DeleteConfirmationDialog(
         text = {
             Column {
                 Text(
-                    "Are you sure you want to delete the tool \"$toolName\"?",
+                    "Are you sure you want to delete the $entityType \"$entityName\"?",
                     style = MaterialTheme.typography.bodyLarge
                 )
-                
+
                 Text(
                     "This action cannot be undone.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -54,11 +55,11 @@ fun DeleteConfirmationDialog(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp)
                 )
-                
+
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Text(
-                    "Type \"yes\" to confirm deletion:",
+                    "Type \"yes\" to confirm deletion of this $entityType:",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 

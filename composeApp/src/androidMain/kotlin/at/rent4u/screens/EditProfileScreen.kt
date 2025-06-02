@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import at.rent4u.presentation.UserViewModel
 import at.rent4u.screens.BottomNavBar
 import at.rent4u.screens.Screen
+import at.rent4u.screens.DeleteConfirmationDialog
 import kotlinx.coroutines.launch // Import for launching coroutines
 
 @Composable
@@ -139,39 +140,20 @@ fun EditProfileScreen(navController: NavController) {
                 Text("Delete Account")
             }
             if (showDeleteConfirmation) {
-                AlertDialog(
-                    onDismissRequest = {
+                DeleteConfirmationDialog(
+                    entityType = "user",
+                    entityName = username,
+                    onConfirm = {
+                        coroutineScope.launch {
+                            viewModel.deleteUser(userId!!)
+                            showDeleteConfirmation = false
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    },
+                    onDismiss = {
                         showDeleteConfirmation = false
-                    },
-                    title = {
-                        Text("Confirm Account Deletion")
-                    },
-                    text = {
-                        Text("Are you sure you want to delete your account? This action cannot be undone.")
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    viewModel.deleteUser(userId!!)
-                                    showDeleteConfirmation = false
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(0) { inclusive = true }
-                                    }
-                                }
-                            }
-                        ) {
-                            Text("Delete")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                showDeleteConfirmation = false
-                            }
-                        ) {
-                            Text("Cancel")
-                        }
                     }
                 )
             }
