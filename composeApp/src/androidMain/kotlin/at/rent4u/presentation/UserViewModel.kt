@@ -136,7 +136,16 @@ class UserViewModel @Inject constructor(
     ) {
         _isLoading.value = true
         try {
-            userRepository.updateUserEmail(userId, newEmail, password)
+            // First update the email in Firebase Authentication
+            // This should be the primary method as it handles auth changes
+            userRepository.updateAuthEmail(newEmail, password)
+            
+            // Then update the email in the database to keep them in sync
+            userRepository.updateEmailInDatabase(userId, newEmail)
+            
+            // After changing email, it needs to be verified again
+            userRepository.sendVerificationEmail()
+            
             _isLoading.value = false
         } catch (e: Exception) {
             _isLoading.value = false
@@ -170,8 +179,6 @@ class UserViewModel @Inject constructor(
         _isLoading.value = true
         try {
             userRepository.getCurrentUserId()?.let {
-                // We need to refresh the user first to get the latest verification status
-                userRepository.refreshCurrentUser()
                 userRepository.sendVerificationEmail()
             }
             _isLoading.value = false
@@ -181,13 +188,13 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun refreshCurrentUser() {
-        viewModelScope.launch {
-            try {
-                userRepository.refreshCurrentUser()
-            } catch (e: Exception) {
-
-            }
+    // Force refresh the current user data from Firebase
+    // Remove the duplicate method and keep only this suspend version
+    suspend fun refreshCurrentUser() {
+        try {
+            userRepository.refreshCurrentUser()
+        } catch (e: Exception) {
+            // Log the error but don't throw
         }
     }
 }

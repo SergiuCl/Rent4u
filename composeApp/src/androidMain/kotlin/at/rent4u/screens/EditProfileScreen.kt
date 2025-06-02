@@ -77,25 +77,35 @@ fun EditProfileScreen(navController: NavController) {
     // Check if email is verified
     LaunchedEffect(Unit) {
         isLoading = true // Set loading state to true when fetching data
-        userId = viewModel.getCurrentUserId()
-        userId?.let {
-            val userDetails = viewModel.getUserDetails(it)
-            username = userDetails.username
-            firstName = userDetails.firstName
-            lastName = userDetails.lastName
-            email = userDetails.email
-            phone = userDetails.phone
+        
+        // Force refresh the user data to get the latest verification status
+        try {
+            viewModel.refreshCurrentUser()
+            
+            userId = viewModel.getCurrentUserId()
+            userId?.let {
+                val userDetails = viewModel.getUserDetails(it)
+                username = userDetails.username
+                firstName = userDetails.firstName
+                lastName = userDetails.lastName
+                email = userDetails.email
+                phone = userDetails.phone
 
-            // Refresh user data to get the latest verification status
-            try {
-                viewModel.refreshCurrentUser()
+                // Get verification status after refreshing user data
                 isEmailVerified = viewModel.isCurrentEmailVerified()
-            } catch (e: Exception) {
-                // If we can't get verification status, assume it's not verified
-                isEmailVerified = false
             }
+        } finally {
+            isLoading = false // Set loading state to false after data is fetched
         }
-        isLoading = false // Set loading state to false after data is fetched
+    }
+
+    // Re-check email verification status when returning from email change
+    LaunchedEffect(email) {
+        if (!isLoading) {
+            // Only check verification status when email changes and not during initial loading
+            viewModel.refreshCurrentUser()
+            isEmailVerified = viewModel.isCurrentEmailVerified()
+        }
     }
 
     Scaffold(
@@ -396,25 +406,24 @@ fun EditProfileScreen(navController: NavController) {
                         onChangeEmail = { newEmail, password ->
                             coroutineScope.launch {
                                 try {
-                                    // First update the email
+                                    // Update the email in both auth and database
                                     viewModel.updateUserEmail(userId!!, newEmail, password)
-
-                                    // Set the toast message before navigating
+                                    
+                                    // Update the local email variable
+                                    email = newEmail
+                                    
+                                    // After email change, explicitly set verification to false
+                                    isEmailVerified = false
+                                    
+                                    // Set the toast message
                                     viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
 
-                                    // Close dialog first to prevent any UI glitches
+                                    // Close dialog
                                     showChangeEmailDialog = false
 
-                                    // Important: Explicitly perform logout
-                                    viewModel.logout()
-
-                                    // Delay slightly to ensure logout completes before navigation
-                                    kotlinx.coroutines.delay(300)
-
-                                    // Navigate to login screen with backstack cleared
-                                    navController.navigate(Screen.Login.route) {
-                                        popUpTo(0) { inclusive = true }
-                                    }
+                                    // Show verification message
+                                    showVerificationSentDialog = true
+                                    
                                 } catch (e: Exception) {
                                     errorMessage = "Failed to update email: ${e.message}"
                                     showErrorDialog = true

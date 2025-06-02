@@ -272,6 +272,71 @@ class UserRepository @Inject constructor(
         }
     }
 
+    /**
+     * Updates the email address in Firebase Authentication
+     * This is the primary method that handles authentication changes
+     * 
+     * @param newEmail The new email address to set
+     * @param password The current user's password for re-authentication
+     */
+    suspend fun updateAuthEmail(newEmail: String, password: String) {
+        val currentUser = auth.currentUser ?: throw Exception("No logged-in user")
+        val currentEmail = currentUser.email ?: throw Exception("Current user has no email")
+
+        if (newEmail.isBlank()) {
+            throw Exception("New email cannot be empty")
+        }
+
+        if (password.isEmpty()) {
+            throw Exception("Password is required to change email")
+        }
+
+        // Re-authenticate with current credentials
+        val credential = EmailAuthProvider.getCredential(currentEmail, password)
+        try {
+            currentUser.reauthenticate(credential).await()
+        } catch (e: Exception) {
+            throw Exception("Authentication failed: Incorrect password")
+        }
+
+        // Force refresh the user data
+        currentUser.reload().await()
+
+        try {
+            // Update email in Firebase Authentication
+            currentUser.updateEmail(newEmail).await()
+            Log.d("UserRepository", "Email updated in Firebase Auth to: $newEmail")
+        } catch (e: Exception) {
+            if (e.message?.contains("Please verify", ignoreCase = true) == true ||
+                e.message?.contains("operation is not allowed", ignoreCase = true) == true) {
+                throw Exception("Email change requires a verified email. Please verify your current email first.")
+            } else {
+                throw Exception("Failed to update email in authentication: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Updates the email address in Firestore database
+     * This should be called after updateAuthEmail to keep systems in sync
+     * 
+     * @param userId The ID of the user whose email is being updated
+     * @param newEmail The new email address to set in the database
+     */
+    suspend fun updateEmailInDatabase(userId: String, newEmail: String) {
+        try {
+            // Update email in Firestore
+            firestore.collection("users").document(userId)
+                .update("email", newEmail)
+                .await()
+            
+            Log.d("UserRepository", "Email updated in database for user $userId to: $newEmail")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Failed to update email in database: ${e.message}")
+            throw Exception("Email was updated in authentication but failed to update in database: ${e.message}")
+        }
+    }
+
     // Specifically handle password changes with re-authentication
     suspend fun updateUserPassword(
         userId: String,
