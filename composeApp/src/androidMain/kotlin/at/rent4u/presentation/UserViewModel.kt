@@ -1,5 +1,8 @@
 package at.rent4u.presentation
 
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
+
 import androidx.lifecycle.ViewModel
 import at.rent4u.data.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -154,6 +157,37 @@ class UserViewModel @Inject constructor(
         } catch (e: Exception) {
             _isLoading.value = false
             throw e
+        }
+    }
+
+    // Check if the current user's email is verified
+    fun isCurrentEmailVerified(): Boolean {
+        return userRepository.isCurrentEmailVerified()
+    }
+
+    // Send a verification email to the current user
+    suspend fun sendVerificationEmail() {
+        _isLoading.value = true
+        try {
+            userRepository.getCurrentUserId()?.let {
+                // We need to refresh the user first to get the latest verification status
+                userRepository.refreshCurrentUser()
+                userRepository.sendVerificationEmail()
+            }
+            _isLoading.value = false
+        } catch (e: Exception) {
+            _isLoading.value = false
+            throw e
+        }
+    }
+
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            try {
+                userRepository.refreshCurrentUser()
+            } catch (e: Exception) {
+
+            }
         }
     }
 }

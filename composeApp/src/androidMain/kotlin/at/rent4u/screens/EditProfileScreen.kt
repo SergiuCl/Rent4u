@@ -1,18 +1,24 @@
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -54,6 +60,8 @@ fun EditProfileScreen(navController: NavController) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var isEmailVerified by remember { mutableStateOf(false) }
+    var showVerificationSentDialog by remember { mutableStateOf(false) }
 
     // New state variables for the email and password change dialogs
     var showChangeEmailDialog by remember { mutableStateOf(false) }
@@ -62,6 +70,7 @@ fun EditProfileScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
+    // Check if email is verified
     LaunchedEffect(Unit) {
         userId = viewModel.getCurrentUserId()
         userId?.let {
@@ -71,6 +80,15 @@ fun EditProfileScreen(navController: NavController) {
             lastName = userDetails.lastName
             email = userDetails.email
             phone = userDetails.phone
+
+            // Refresh user data to get the latest verification status
+            try {
+                viewModel.refreshCurrentUser()
+                isEmailVerified = viewModel.isCurrentEmailVerified()
+            } catch (e: Exception) {
+                // If we can't get verification status, assume it's not verified
+                isEmailVerified = false
+            }
         }
     }
 
@@ -84,6 +102,29 @@ fun EditProfileScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // User banner at the top showing logged in username
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                )
+            ) {
+                Text(
+                    text = "Logged in as $username",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -129,14 +170,75 @@ fun EditProfileScreen(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Email field (read-only)
-            OutlinedTextField(
-                value = email,
-                onValueChange = { /* Read-only field */ },
-                label = { Text("Email") },
+            // Email field with verification status indicator
+            Row(
                 modifier = Modifier.fillMaxWidth(0.9f),
-                readOnly = true
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Email field (read-only)
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { /* Read-only field */ },
+                    label = { Text("Email") },
+                    modifier = Modifier.weight(1f),
+                    readOnly = true,
+                    trailingIcon = {
+                        if (isEmailVerified) {
+                            Icon(
+                                imageVector = Icons.Filled.CheckCircle,
+                                contentDescription = "Verified",
+                                tint = Color.Green
+                            )
+                        } else {
+                            Icon(
+                                imageVector = Icons.Filled.Warning,
+                                contentDescription = "Not Verified",
+                                tint = Color.Red
+                            )
+                        }
+                    }
+                )
+
+                if (!isEmailVerified) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                try {
+                                    viewModel.sendVerificationEmail()
+                                    showVerificationSentDialog = true
+                                } catch (e: Exception) {
+                                    errorMessage = "Failed to send verification email: ${e.message}"
+                                    showErrorDialog = true
+                                }
+                            }
+                        }
+                    ) {
+                        Text("Verify")
+                    }
+                }
+            }
+
+            // Email verification status text
+            if (!isEmailVerified) {
+                Text(
+                    text = "Your email is not verified. Please check your inbox or click 'Verify' to receive a new verification link.",
+                    color = Color.Red,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(top = 4.dp)
+                )
+            } else {
+                Text(
+                    text = "Your email is verified",
+                    color = Color.Green,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .padding(top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -259,6 +361,19 @@ fun EditProfileScreen(navController: NavController) {
                     text = { Text(errorMessage) },
                     confirmButton = {
                         TextButton(onClick = { showErrorDialog = false }) {
+                            Text("OK")
+                        }
+                    }
+                )
+            }
+
+            if (showVerificationSentDialog) {
+                AlertDialog(
+                    onDismissRequest = { showVerificationSentDialog = false },
+                    title = { Text("Verification Email Sent") },
+                    text = { Text("A verification email has been sent to your email address. Please check your inbox and follow the link to verify your email.") },
+                    confirmButton = {
+                        TextButton(onClick = { showVerificationSentDialog = false }) {
                             Text("OK")
                         }
                     }
