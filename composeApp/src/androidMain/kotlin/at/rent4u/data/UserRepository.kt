@@ -1,5 +1,8 @@
 package at.rent4u.data
 
+import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
@@ -7,11 +10,32 @@ import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import at.rent4u.model.UserDetails // Ensure the UserDetails class is imported
 import com.google.firebase.auth.EmailAuthProvider
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) {
+    private val sharedPreferences: SharedPreferences =
+        context.getSharedPreferences("rent4u_prefs", Context.MODE_PRIVATE)
+    private val KEY_KEEP_LOGGED_IN = "keep_logged_in"
+
+    // Check if user has chosen to stay logged in
+    fun isKeepLoggedInEnabled(): Boolean {
+        return sharedPreferences.getBoolean(KEY_KEEP_LOGGED_IN, false)
+    }
+
+    // Set keep logged in preference
+    fun setKeepLoggedIn(enabled: Boolean) {
+        sharedPreferences.edit().putBoolean(KEY_KEEP_LOGGED_IN, enabled).apply()
+        Log.d("UserRepository", "Keep logged in set to: $enabled")
+    }
+
+    // Check if user is already logged in
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null && isKeepLoggedInEnabled()
+    }
 
     suspend fun registerUser(
         email: String,
@@ -114,7 +138,7 @@ class UserRepository @Inject constructor(
         firestore.collection("users").document(userId).update(userData).await()
 
         // If email is being changed, handle re-authentication and email update
-        if (newEmail != currentEmail) {
+        if (newEmail.isNotBlank() && newEmail != currentEmail) {
             if (password.isEmpty()) {
                 throw Exception("Password is required to change email")
             }
@@ -156,6 +180,4 @@ class UserRepository @Inject constructor(
         firestore.collection("users").document(userId).delete().await()
         auth.currentUser?.delete()?.await()
     }
-
-
 }

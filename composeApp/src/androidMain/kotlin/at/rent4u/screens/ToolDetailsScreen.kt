@@ -182,7 +182,8 @@ fun ToolDetailsScreen(
                         Button(
                             onClick = {
                                 Log.d("ToolDetails", "Edit clicked for toolId = $toolId")
-                                navController.navigate(Screen.AdminToolUpdate.createRoute(toolId))
+                                val cleanToolId = toolId.trim().split("/").first()
+                                navController.navigate(Screen.AdminToolUpdate.createRoute(cleanToolId))
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

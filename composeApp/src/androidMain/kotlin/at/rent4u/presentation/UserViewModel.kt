@@ -19,6 +19,20 @@ class UserViewModel @Inject constructor(
     private val _toastMessage = MutableStateFlow<String?>(null)
     val toastMessage: StateFlow<String?> = _toastMessage
 
+    private val _keepLoggedIn = MutableStateFlow(userRepository.isKeepLoggedInEnabled())
+    val keepLoggedIn: StateFlow<Boolean> = _keepLoggedIn
+
+    // Check if user is already logged in
+    fun isUserLoggedIn(): Boolean {
+        return userRepository.isUserLoggedIn()
+    }
+
+    // Update the keep logged in preference
+    fun setKeepLoggedIn(enabled: Boolean) {
+        userRepository.setKeepLoggedIn(enabled)
+        _keepLoggedIn.value = enabled
+    }
+
     suspend fun register(
         email: String,
         password: String,
@@ -41,7 +55,11 @@ class UserViewModel @Inject constructor(
         return result
     }
 
-    fun logout() = userRepository.logoutUser()
+    fun logout() {
+        userRepository.logoutUser()
+        // When logging out, also clear the keep logged in preference
+        setKeepLoggedIn(false)
+    }
 
     fun clearToastMessage() {
         _toastMessage.value = null

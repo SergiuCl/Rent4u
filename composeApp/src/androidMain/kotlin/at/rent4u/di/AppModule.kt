@@ -1,5 +1,8 @@
 package at.rent4u.di
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+
 import at.rent4u.data.BookingRepository
 import at.rent4u.data.ToolRepository
 import at.rent4u.data.UserRepository
@@ -21,13 +24,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth {
-        return Firebase.auth
+        return FirebaseAuth.getInstance()
     }
 
     @Provides
     @Singleton
     fun provideFirestore(): FirebaseFirestore {
-        return Firebase.firestore
+        return FirebaseFirestore.getInstance()
     }
 
     @Provides
@@ -38,13 +41,22 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(firestore: FirebaseFirestore, auth: FirebaseAuth): UserRepository {
-        return UserRepository(firestore, auth)
+    fun provideUserRepository(
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth,
+        @ApplicationContext context: Context
+    ): UserRepository {
+        return UserRepository(
+            firestore, auth,
+            context
+        )
     }
 
     @Provides
     @Singleton
-    fun provideBookingRepository(firestore: FirebaseFirestore, auth: FirebaseAuth): BookingRepository {
+    fun provideBookingRepository(
+        firestore: FirebaseFirestore, auth: FirebaseAuth
+    ): BookingRepository {
         return BookingRepository(firestore, auth)
     }
 }

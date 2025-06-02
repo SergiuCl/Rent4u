@@ -134,7 +134,7 @@ fun EditProfileScreen(navController: NavController) {
                             viewModel.updateUserDetails(
                                 userId!!, username, firstName, lastName, email, password, phone
                             )
-                            if (email != originalEmail) {
+                            if (email.isNotBlank() && email != originalEmail) {
                                 viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
                                 // Log the user out if the email was changed
                                 viewModel.logout()
