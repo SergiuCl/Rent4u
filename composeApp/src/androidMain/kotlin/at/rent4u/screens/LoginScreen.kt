@@ -1,5 +1,6 @@
 package at.rent4u.screens
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,6 +81,7 @@ fun LoginScreen(navController: NavController) {
                     val success = viewModel.login(email, password)
 
                     if (success) {
+                        Log.d("LoginScreen", "Login succeeded → ToolList")
                         navController.navigate(Screen.ToolList.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }

@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.rent4u.data.BookingRepository
 import at.rent4u.data.ToolRepository
 import at.rent4u.data.UserRepository
 import at.rent4u.model.Booking
@@ -17,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyBookingsViewModel @Inject constructor(
-    private val repository: ToolRepository,
+    private val toolRepository: ToolRepository,
+    private val bookingRepository: BookingRepository,
     private val userRepository: UserRepository
 ) : ViewModel() {
 
@@ -39,11 +41,11 @@ class MyBookingsViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isLoading.value = true
-            val bookings = repository.getBookingsForUser(userId)
+            val bookings = bookingRepository.getBookingsForUser(userId)
             _userBookings.value = bookings
 
             val toolIds = bookings.map { it.toolId }.toSet()
-            val tools = repository.getToolsByIds(toolIds)
+            val tools = toolRepository.getToolsByIds(toolIds)
             _bookedTools.value = tools.associate { it.first to it.second } // toolId -> Tool
             _isLoading.value = false
         }
@@ -58,7 +60,7 @@ class MyBookingsViewModel @Inject constructor(
                 return@launch
             }
 
-            repository.cancelBooking(booking)
+            bookingRepository.cancelBooking(booking)
             _toastMessage.value = "Booking canceled successfully"
             fetchUserBookings()
         }

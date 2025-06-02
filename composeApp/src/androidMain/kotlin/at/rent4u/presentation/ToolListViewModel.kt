@@ -1,5 +1,6 @@
 package at.rent4u.presentation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import at.rent4u.data.ToolRepository
@@ -9,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -20,11 +22,11 @@ class ToolListViewModel @Inject constructor(
 
     private val _isAdmin = MutableStateFlow(false)
     val isAdmin: StateFlow<Boolean> = _isAdmin
-    private val _tools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
-    val tools: StateFlow<List<Pair<String, Tool>>> = _tools.asStateFlow()
 
-    private val _singleTool = MutableStateFlow<Pair<String, Tool>?>(null)
-    val singleTool: StateFlow<Pair<String, Tool>?> = _singleTool
+    // Backing flow for all tools observed from Firestore
+    private val _allTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
+    // Expose allTools if needed; otherwise use filteredTools only
+    // val allTools: StateFlow<List<Pair<String, Tool>>> = _allTools
 
     private val _isFetchingTool = MutableStateFlow(false)
     val isFetchingTool: StateFlow<Boolean> = _isFetchingTool
@@ -33,77 +35,122 @@ class ToolListViewModel @Inject constructor(
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
     private val _filters = MutableStateFlow(ToolFilter())
-    val filters = _filters.asStateFlow()
+    val filters: StateFlow<ToolFilter> = _filters.asStateFlow()
 
+    // This is the flow your UI should collect from.
     private val _filteredTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
-    val filteredTools = _filteredTools.asStateFlow()
-
-    private var hasMoreItems = true
+    val filteredTools: StateFlow<List<Pair<String, Tool>>> = _filteredTools.asStateFlow()
 
     init {
+        // 1. Start collecting the repo’s Flow of all tools
         viewModelScope.launch {
-            loadMoreTools()
+            toolRepository.observeAllTools()
+                .collectLatest { toolsList ->
+                    _allTools.value = toolsList
+                    applyFilters(toolsList) // pass the list into applyFilters
+                }
+        }
+        // 2) Immediately check “am I admin?” and keep it up to date
+        //    If `userRepository.isCurrentUserAdmin()` is itself a Flow, collect it.
+        //    If it’s a suspend function, call it once.
+        viewModelScope.launch {
+            val adminStatus = userRepository.isCurrentUserAdmin()
+            _isAdmin.value = adminStatus
         }
     }
 
+
     fun loadMoreTools() {
-        if (_isLoadingMore.value || !hasMoreItems) return
+        if (_isLoadingMore.value) return
 
         viewModelScope.launch {
             _isLoadingMore.value = true
-            val newTools = toolRepository.getToolsPaged()
+            Log.d("ToolListVM", "Fetching all tools")
 
-            if (newTools.isEmpty()) {
-                hasMoreItems = false
-            } else {
-                // Use Firestore document ID as key to prevent duplicates
-                _tools.value = (_tools.value + newTools)
-                    .distinctBy { it.first }
-            }
+            // Fetch all tools in one go
+            val allTools = toolRepository.getToolsPaged(null)
+            Log.d("ToolListVM", "Repository returned ${allTools.size} tools")
 
-            applyFilters()
+            // If needed, update _allTools here or trigger filtering
+            // _allTools.value = allTools
+            // applyFilters(allTools)
 
-            _isAdmin.value = userRepository.isCurrentUserAdmin()
             _isLoadingMore.value = false
         }
     }
 
     fun updateFilter(update: ToolFilter.() -> ToolFilter) {
         _filters.value = _filters.value.update()
-        applyFilters()
+        applyFilters(_allTools.value)
     }
 
-    private fun applyFilters() {
+    private fun applyFilters(toolsList: List<Pair<String, Tool>>) {
         val minPrice = _filters.value.minPriceText.toDoubleOrNull()
         val maxPrice = _filters.value.maxPriceText.toDoubleOrNull()
 
-        _filteredTools.value = _tools.value.filter { (_, tool) ->
-            val price = tool.rentalRate.replace("€", "").toDoubleOrNull() ?: return@filter false
-
-            (_filters.value.brand.isBlank() || tool.brand.contains(_filters.value.brand, true)) &&
-                    (_filters.value.type.isBlank() || tool.type.contains(_filters.value.type, true)) &&
-                    (_filters.value.availabilityStatus.isBlank() || tool.availabilityStatus.equals(_filters.value.availabilityStatus, true)) &&
-                    (minPrice == null || price >= minPrice) &&
-                    (maxPrice == null || price <= maxPrice)
+        _filteredTools.value = toolsList.filter { (_, tool) ->
+            val price = tool.rentalRate
+            (_filters.value.brand.isBlank() || tool.brand.contains(
+                _filters.value.brand,
+                ignoreCase = true
+            ))
+                    && (_filters.value.type.isBlank() || tool.type.contains(
+                _filters.value.type,
+                ignoreCase = true
+            ))
+                    && (_filters.value.availabilityStatus.isBlank()
+                    || tool.availabilityStatus.equals(
+                _filters.value.availabilityStatus,
+                ignoreCase = true
+            ))
+                    && (minPrice == null || price >= minPrice)
+                    && (maxPrice == null || price <= maxPrice)
         }
     }
 
-    fun fetchToolIById(toolId: String) {
-        val alreadyLoaded = _tools.value.find { it.first == toolId }
-        if (alreadyLoaded != null) {
-            _singleTool.value = alreadyLoaded
+    fun fetchToolById(toolId: String, forceRefresh: Boolean = false) {
+        val alreadyLoaded = _allTools.value.find { it.first == toolId }
+        if (alreadyLoaded != null && !forceRefresh) {
+            // If we already have it in the current list and no refresh is needed, emit it immediately
+            _filteredTools.value = listOf(alreadyLoaded)
             return
         }
 
         viewModelScope.launch {
             _isFetchingTool.value = true
+            Log.d("ToolListVM", "Fetching tool with ID: $toolId, forceRefresh=$forceRefresh")
+
             val tool = toolRepository.getToolById(toolId)
             if (tool != null) {
-                _singleTool.value = toolId to tool
+                Log.d("ToolListVM", "Retrieved tool: $tool")
+
+                // Update the tool in our local cache
+                val updatedTools = _allTools.value.map {
+                    if (it.first == toolId) toolId to tool else it
+                }.toMutableList()
+
+                // Add the tool if it wasn't in our list
+                if (!updatedTools.any { it.first == toolId }) {
+                    updatedTools.add(toolId to tool)
+                }
+
+                _allTools.value = updatedTools
+                _filteredTools.value = listOf(toolId to tool)
             } else {
-                _singleTool.value = null
+                Log.d("ToolListVM", "Tool not found with ID: $toolId")
+                _filteredTools.value = emptyList()
             }
             _isFetchingTool.value = false
+        }
+    }
+
+    fun refreshTools() {
+        viewModelScope.launch {
+            toolRepository.observeAllTools()
+                .collectLatest { toolsList ->
+                    _allTools.value = toolsList
+                    applyFilters(toolsList)
+                }
         }
     }
 }

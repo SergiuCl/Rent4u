@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import at.rent4u.data.BookingRepository
 import at.rent4u.data.ToolRepository
 import at.rent4u.data.UserRepository
 import at.rent4u.model.Booking
@@ -17,8 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookingViewModel @Inject constructor(
-    private val repository: ToolRepository,
-    private val userRepository: UserRepository
+    private val toolRepository: ToolRepository,
+    private val userRepository: UserRepository,
+    private val bookingRepository: BookingRepository
 ) : ViewModel() {
 
     private val _tool = MutableStateFlow<Tool?>(null)
@@ -40,8 +42,8 @@ class BookingViewModel @Inject constructor(
     fun fetchTool(toolId: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            _tool.value = repository.getToolById(toolId)
-            _bookedDates.value = repository.getBookedDates(toolId)
+            _tool.value = toolRepository.getToolById(toolId)
+            _bookedDates.value = bookingRepository.getBookedDates(toolId)
             _isLoading.value = false
         }
     }
@@ -64,7 +66,7 @@ class BookingViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isLoading.value = true
-            val success = repository.bookTool(booking)
+            val success = bookingRepository.bookTool(booking)
             _isLoading.value = false
 
             if (success) {

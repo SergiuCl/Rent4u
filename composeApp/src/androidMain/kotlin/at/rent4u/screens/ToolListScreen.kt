@@ -1,5 +1,7 @@
 package at.rent4u.screens
 
+import android.util.Log
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -55,31 +57,31 @@ import coil.compose.AsyncImage
 
 @Composable
 fun ToolListScreen(navController: NavController) {
+    Log.d("ToolListScreen", "Composing ToolListScreen")
 
     val viewModel: ToolListViewModel = hiltViewModel()
     val isAdmin by viewModel.isAdmin.collectAsState()
+    Log.d("ToolList", "isAdmin = $isAdmin")
+
     val tools by viewModel.filteredTools.collectAsState()
+    Log.d("ToolList", "Collected filteredTools: size = ${tools.size}")
+
     val listState = rememberLazyListState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+    Log.d("ToolList", "isLoadingMore = $isLoadingMore")
 
     var showFilters by remember { mutableStateOf(false) }
 
-    // watch listState state and react accordingly when it changes
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleIndex ->
-                if (lastVisibleIndex == tools.lastIndex) {
-                    viewModel.loadMoreTools()
-                }
-            }
-    }
+    // Collect the latest list of tools (id → Tool)
+    val toolsList by viewModel.filteredTools.collectAsState()
+
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
         floatingActionButton = {
             if (isAdmin) {
                 FloatingActionButton(
-                    onClick = { navController.navigate(Screen.AdminToolEditor.route) },
+                    onClick = { navController.navigate(Screen.AdminToolCreate.route) },
                     containerColor = Color.LightGray,
                     contentColor = Color.Black,
                     shape = RoundedCornerShape(50),
@@ -93,6 +95,7 @@ fun ToolListScreen(navController: NavController) {
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
+        Log.d("ToolListScreen", "About to render LazyColumn with ${tools.size} items")
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -130,7 +133,6 @@ fun ToolListScreen(navController: NavController) {
                 }
             }
 
-            // Add a Spacer here to create space after the button
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -184,7 +186,10 @@ fun ToolListScreen(navController: NavController) {
 fun FilterSection(viewModel: ToolListViewModel) {
     val filters by viewModel.filters.collectAsState()
 
-    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(bottom = 8.dp)
+    ) {
         OutlinedTextField(
             value = filters.brand,
             onValueChange = { viewModel.updateFilter { copy(brand = it) } },
@@ -209,18 +214,14 @@ fun FilterSection(viewModel: ToolListViewModel) {
         Row(modifier = Modifier.fillMaxWidth()) {
             OutlinedTextField(
                 value = filters.minPriceText,
-                onValueChange = {
-                    viewModel.updateFilter { copy(minPriceText = it) }
-                },
+                onValueChange = { viewModel.updateFilter { copy(minPriceText = it) } },
                 label = { Text("Min Price") },
                 modifier = Modifier.weight(1f).padding(end = 4.dp)
             )
 
             OutlinedTextField(
                 value = filters.maxPriceText,
-                onValueChange = {
-                    viewModel.updateFilter { copy(maxPriceText = it) }
-                },
+                onValueChange = { viewModel.updateFilter { copy(maxPriceText = it) } },
                 label = { Text("Max Price") },
                 modifier = Modifier.weight(1f).padding(start = 4.dp)
             )
@@ -279,7 +280,7 @@ fun ToolListItem(
                         Text(tool.availabilityStatus, style = MaterialTheme.typography.bodyMedium)
                     }
 
-                    val cleanPrice = tool.rentalRate.replace("€", "").trim()
+                    val cleanPrice = tool.rentalRate
                     Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -287,7 +288,6 @@ fun ToolListItem(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // show bottom border only if not the last item in the list
         if (!isLastItem) {
             Box(
                 modifier = Modifier
