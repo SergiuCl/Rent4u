@@ -66,6 +66,7 @@ fun EditProfileScreen(navController: NavController) {
     var isEmailVerified by remember { mutableStateOf(false) }
     var showVerificationSentDialog by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) } // Add loading state
+    var isRefreshingVerification by remember { mutableStateOf(false) }
 
     // New state variables for the email and password change dialogs
     var showChangeEmailDialog by remember { mutableStateOf(false) }
@@ -74,12 +75,28 @@ fun EditProfileScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    // Check if email is verified
+    // Function to refresh verification status properly
+    fun refreshVerificationStatus() {
+        coroutineScope.launch {
+            isRefreshingVerification = true
+            try {
+                // Use the suspending function that forces a refresh
+                isEmailVerified = viewModel.isCurrentEmailVerifiedWithRefresh()
+            } catch (e: Exception) {
+                // If there's an error, assume not verified for safety
+                isEmailVerified = false
+            } finally {
+                isRefreshingVerification = false
+            }
+        }
+    }
+
+    // Initial data loading
     LaunchedEffect(Unit) {
         isLoading = true // Set loading state to true when fetching data
         
-        // Force refresh the user data to get the latest verification status
         try {
+            // Force refresh the user data to get the latest verification status
             viewModel.refreshCurrentUser()
             
             userId = viewModel.getCurrentUserId()
@@ -92,19 +109,20 @@ fun EditProfileScreen(navController: NavController) {
                 phone = userDetails.phone
 
                 // Get verification status after refreshing user data
-                isEmailVerified = viewModel.isCurrentEmailVerified()
+                isEmailVerified = viewModel.isCurrentEmailVerifiedWithRefresh()
             }
         } finally {
             isLoading = false // Set loading state to false after data is fetched
         }
     }
 
-    // Re-check email verification status when returning from email change
-    LaunchedEffect(email) {
-        if (!isLoading) {
-            // Only check verification status when email changes and not during initial loading
-            viewModel.refreshCurrentUser()
-            isEmailVerified = viewModel.isCurrentEmailVerified()
+    // Periodically refresh verification status when not loading
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(5000) // Check every 5 seconds
+            if (!isLoading && !isRefreshingVerification) {
+                refreshVerificationStatus()
+            }
         }
     }
 
@@ -413,6 +431,7 @@ fun EditProfileScreen(navController: NavController) {
                                     email = newEmail
                                     
                                     // After email change, explicitly set verification to false
+                                    // This ensures the UI shows correct status immediately
                                     isEmailVerified = false
                                     
                                     // Set the toast message
@@ -423,6 +442,9 @@ fun EditProfileScreen(navController: NavController) {
 
                                     // Show verification message
                                     showVerificationSentDialog = true
+                                    
+                                    // Trigger background refresh of verification status
+                                    refreshVerificationStatus()
                                     
                                 } catch (e: Exception) {
                                     errorMessage = "Failed to update email: ${e.message}"
@@ -441,6 +463,16 @@ fun EditProfileScreen(navController: NavController) {
                         onChangePassword = { currentPassword, newPassword ->
                             coroutineScope.launch {
                                 try {
+                                    // First, check if email is verified with a forced refresh
+                                    val verified = viewModel.isCurrentEmailVerifiedWithRefresh()
+                                    
+                                    if (!verified) {
+                                        errorMessage = "Your email must be verified before changing password. Please verify your email first."
+                                        showErrorDialog = true
+                                        showChangePasswordDialog = false
+                                        return@launch
+                                    }
+                                    
                                     viewModel.updateUserPassword(userId!!, currentPassword, newPassword)
 
                                     // Set toast message before navigating

@@ -384,7 +384,20 @@ class UserRepository @Inject constructor(
         auth.currentUser?.delete()?.await()
     }
 
-    // Check if the current user's email is verified
+    // Check if the current user's email is verified - improved with forced refresh
+    suspend fun isCurrentEmailVerifiedWithRefresh(): Boolean {
+        val currentUser = auth.currentUser ?: return false
+        try {
+            // Force a refresh to get the latest verification status
+            currentUser.reload().await()
+            return currentUser.isEmailVerified
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Error checking email verification status: ${e.message}")
+            return false
+        }
+    }
+
+    // Synchronous version that doesn't refresh - use with caution
     fun isCurrentEmailVerified(): Boolean {
         return auth.currentUser?.isEmailVerified ?: false
     }

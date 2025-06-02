@@ -137,7 +137,6 @@ class UserViewModel @Inject constructor(
         _isLoading.value = true
         try {
             // First update the email in Firebase Authentication
-            // This should be the primary method as it handles auth changes
             userRepository.updateAuthEmail(newEmail, password)
             
             // Then update the email in the database to keep them in sync
@@ -169,7 +168,12 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    // Check if the current user's email is verified
+    // Check if the current user's email is verified with a forced refresh
+    suspend fun isCurrentEmailVerifiedWithRefresh(): Boolean {
+        return userRepository.isCurrentEmailVerifiedWithRefresh()
+    }
+    
+    // Synchronous version that doesn't force refresh - use with caution
     fun isCurrentEmailVerified(): Boolean {
         return userRepository.isCurrentEmailVerified()
     }
