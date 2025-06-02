@@ -54,18 +54,6 @@ fun ToolDetailsScreen(
         viewModel.fetchToolById(toolId, forceRefresh = true) // Always force refresh when entering details screen
     }
 
-    // Check if we need to refresh the tool when returning from the edit screen
-    LaunchedEffect(Unit) {
-        val refreshToolId = navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.remove<String>("REFRESH_TOOL")
-
-        if (refreshToolId == toolId) {
-            Log.d("ToolDetails", "Detected need to refresh tool ID: $toolId")
-            viewModel.refreshTool(toolId)
-        }
-    }
-
     // 2) Observe the filteredTools flow, which will contain exactly [toolId -> Tool] once fetch completes
     val tools by viewModel.filteredTools.collectAsState()
     Log.d("ToolDetails", "Collected filteredTools: size = ${tools.size}, contents = $tools")
@@ -202,23 +190,7 @@ fun ToolDetailsScreen(
                         }
                         
                         Spacer(modifier = Modifier.height(8.dp))
-                        
-                        // Delete button
-                        Button(
-                            onClick = {
-                                showDeleteConfirmation = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(50.dp),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red,
-                                contentColor = Color.White
-                            )
-                        ) {
-                            Text("Delete Tool")
-                        }
+
                     }
 
                     Spacer(modifier = Modifier.height(80.dp))

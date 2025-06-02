@@ -16,10 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.presentation.AdminToolViewModel
@@ -45,12 +47,16 @@ fun AdminToolUpdateScreen(
     
     // Track update success and loading state
     val creationSuccess by viewModel.creationSuccess.collectAsState()
+    val deletionSuccess by viewModel.deletionSuccess.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     
     // For toast messages
     val context = LocalContext.current
     val toastMessage by viewModel.toastMessage.collectAsState()
-
+    
+    // For delete confirmation dialog
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    
     // Show toast messages
     toastMessage?.let {
         Toast.makeText(context, it, Toast.LENGTH_LONG).show()
@@ -110,8 +116,26 @@ fun AdminToolUpdateScreen(
                     onCancel = {
                         // Cancel goes back without saving
                         navController.popBackStack()
+                    },
+                    onDelete = {
+                        // Show delete confirmation dialog
+                        showDeleteConfirmation = true
                     }
                 )
+                
+                // Show delete confirmation dialog if needed
+                if (showDeleteConfirmation) {
+                    DeleteConfirmationDialog(
+                        toolName = "${toolState!!.brand} ${toolState!!.modelNumber}",
+                        onConfirm = {
+                            viewModel.deleteTool(toolState!!.id)
+                            showDeleteConfirmation = false
+                        },
+                        onDismiss = {
+                            showDeleteConfirmation = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -127,6 +151,28 @@ fun AdminToolUpdateScreen(
             
             // Clear the success state
             viewModel.clearCreationSuccess()
+        }
+    }
+    
+    // Handle successful deletion navigation
+    LaunchedEffect(deletionSuccess) {
+        if (deletionSuccess == true) {
+            Log.d("AdminToolUpdate", "Delete successful, navigating to tool list")
+            
+            // Set refresh flag in the tool list screen's saved state
+            // Find the ToolList entry in the backstack
+            navController.getBackStackEntry(Screen.ToolList.route).savedStateHandle.set(
+                "REFRESH_TOOLS_LIST", true
+            )
+            
+            // After deletion, navigate back to tool list
+            navController.navigate(Screen.ToolList.route) {
+                // Pop up to tool list including the tool list screen (will recreate it)
+                popUpTo(Screen.ToolList.route) { inclusive = true }
+            }
+            
+            // Clear the success state
+            viewModel.clearDeletionSuccess()
         }
     }
 }

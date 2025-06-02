@@ -72,17 +72,9 @@ fun ToolListScreen(navController: NavController) {
 
     var showFilters by remember { mutableStateOf(false) }
 
-    LaunchedEffect(listState) {
-        Log.d("ToolListScreen", "LaunchedEffect(listState) starting")
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleIndex ->
-                Log.d("ToolListScreen", "lastVisibleIndex = $lastVisibleIndex, tools.lastIndex = ${tools.lastIndex}")
-                if (lastVisibleIndex == tools.lastIndex) {
-                    Log.d("ToolListScreen", "Triggering loadMoreTools()")
-                    viewModel.loadMoreTools()
-                }
-            }
-    }
+    // Collect the latest list of tools (id → Tool)
+    val toolsList by viewModel.filteredTools.collectAsState()
+
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },

@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,8 +23,10 @@ class ToolListViewModel @Inject constructor(
     private val _isAdmin = MutableStateFlow(false)
     val isAdmin: StateFlow<Boolean> = _isAdmin
 
-    // We no longer expose _tools directly; instead we filter them immediately
-    private val _tools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
+    // Backing flow for all tools observed from Firestore
+    private val _allTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
+    // Expose allTools if needed; otherwise use filteredTools only
+    // val allTools: StateFlow<List<Pair<String, Tool>>> = _allTools
 
     private val _isFetchingTool = MutableStateFlow(false)
     val isFetchingTool: StateFlow<Boolean> = _isFetchingTool
@@ -39,14 +42,23 @@ class ToolListViewModel @Inject constructor(
     val filteredTools: StateFlow<List<Pair<String, Tool>>> = _filteredTools.asStateFlow()
 
     init {
+        // 1. Start collecting the repo’s Flow of all tools
         viewModelScope.launch {
-            // Check if the current user is an admin
-            _isAdmin.value = userRepository.isCurrentUserAdmin()
-            Log.d("ToolListVM", "User admin status: ${_isAdmin.value}")
-
-            loadMoreTools()
+            toolRepository.observeAllTools()
+                .collectLatest { toolsList ->
+                    _allTools.value = toolsList
+                    applyFilters(toolsList) // pass the list into applyFilters
+                }
+        }
+        // 2) Immediately check “am I admin?” and keep it up to date
+        //    If `userRepository.isCurrentUserAdmin()` is itself a Flow, collect it.
+        //    If it’s a suspend function, call it once.
+        viewModelScope.launch {
+            val adminStatus = userRepository.isCurrentUserAdmin()
+            _isAdmin.value = adminStatus
         }
     }
+
 
     fun loadMoreTools() {
         if (_isLoadingMore.value) return
@@ -59,11 +71,9 @@ class ToolListViewModel @Inject constructor(
             val allTools = toolRepository.getToolsPaged(null)
             Log.d("ToolListVM", "Repository returned ${allTools.size} tools")
 
-            // Replace the tools list and apply filters
-            _tools.value = allTools
-            applyFilters()
-
-            Log.d("ToolListVM", "After loading, tools.size = ${_tools.value.size}, filteredTools.size = ${_filteredTools.value.size}")
+            // If needed, update _allTools here or trigger filtering
+            // _allTools.value = allTools
+            // applyFilters(allTools)
 
             _isLoadingMore.value = false
         }
@@ -71,27 +81,35 @@ class ToolListViewModel @Inject constructor(
 
     fun updateFilter(update: ToolFilter.() -> ToolFilter) {
         _filters.value = _filters.value.update()
-        applyFilters()
+        applyFilters(_allTools.value)
     }
 
-    private fun applyFilters() {
+    private fun applyFilters(toolsList: List<Pair<String, Tool>>) {
         val minPrice = _filters.value.minPriceText.toDoubleOrNull()
         val maxPrice = _filters.value.maxPriceText.toDoubleOrNull()
 
-        _filteredTools.value = _tools.value.filter { (_, tool) ->
+        _filteredTools.value = toolsList.filter { (_, tool) ->
             val price = tool.rentalRate
-
-            (_filters.value.brand.isBlank() || tool.brand.contains(_filters.value.brand, ignoreCase = true))
-                    && (_filters.value.type.isBlank() || tool.type.contains(_filters.value.type, ignoreCase = true))
+            (_filters.value.brand.isBlank() || tool.brand.contains(
+                _filters.value.brand,
+                ignoreCase = true
+            ))
+                    && (_filters.value.type.isBlank() || tool.type.contains(
+                _filters.value.type,
+                ignoreCase = true
+            ))
                     && (_filters.value.availabilityStatus.isBlank()
-                    || tool.availabilityStatus.equals(_filters.value.availabilityStatus, ignoreCase = true))
+                    || tool.availabilityStatus.equals(
+                _filters.value.availabilityStatus,
+                ignoreCase = true
+            ))
                     && (minPrice == null || price >= minPrice)
                     && (maxPrice == null || price <= maxPrice)
         }
     }
 
     fun fetchToolById(toolId: String, forceRefresh: Boolean = false) {
-        val alreadyLoaded = _tools.value.find { it.first == toolId }
+        val alreadyLoaded = _allTools.value.find { it.first == toolId }
         if (alreadyLoaded != null && !forceRefresh) {
             // If we already have it in the current list and no refresh is needed, emit it immediately
             _filteredTools.value = listOf(alreadyLoaded)
@@ -101,22 +119,22 @@ class ToolListViewModel @Inject constructor(
         viewModelScope.launch {
             _isFetchingTool.value = true
             Log.d("ToolListVM", "Fetching tool with ID: $toolId, forceRefresh=$forceRefresh")
-            
+
             val tool = toolRepository.getToolById(toolId)
             if (tool != null) {
                 Log.d("ToolListVM", "Retrieved tool: $tool")
-                
+
                 // Update the tool in our local cache
-                val updatedTools = _tools.value.map {
+                val updatedTools = _allTools.value.map {
                     if (it.first == toolId) toolId to tool else it
                 }.toMutableList()
-                
+
                 // Add the tool if it wasn't in our list
                 if (!updatedTools.any { it.first == toolId }) {
                     updatedTools.add(toolId to tool)
                 }
-                
-                _tools.value = updatedTools
+
+                _allTools.value = updatedTools
                 _filteredTools.value = listOf(toolId to tool)
             } else {
                 Log.d("ToolListVM", "Tool not found with ID: $toolId")
@@ -126,9 +144,14 @@ class ToolListViewModel @Inject constructor(
         }
     }
 
-    fun refreshTool(toolId: String) {
-        Log.d("ToolListVM", "Refreshing tool with ID: $toolId")
-        fetchToolById(toolId, forceRefresh = true)
+    fun refreshTools() {
+        viewModelScope.launch {
+            toolRepository.observeAllTools()
+                .collectLatest { toolsList ->
+                    _allTools.value = toolsList
+                    applyFilters(toolsList)
+                }
+        }
     }
 }
 

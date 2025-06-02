@@ -4,9 +4,13 @@ import android.util.Log
 import at.rent4u.model.Tool
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -134,6 +138,44 @@ class ToolRepository @Inject constructor() {
         } catch (e: Exception) {
             Log.e("ToolRepository", "Error getting tools by IDs: ${e.message}")
             emptyList()
+        }
+    }
+
+    /**
+     * Returns a cold Flow that, when collected, starts a Firestore snapshot listener on "tools".
+     * As soon as the listener emits a new QuerySnapshot, the Flow emits a List<Pair<id,Tool>>.
+     */
+    fun observeAllTools(): Flow<List<Pair<String, Tool>>> = callbackFlow {
+        val listener: ListenerRegistration = Firebase.firestore
+            .collection("tools")
+            .orderBy("createdAt")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("ToolRepository", "Listen failed: ${error.message}")
+                    // You can choose to close the flow or emit an empty list
+                    // channel.close(error)
+                    return@addSnapshotListener
+                }
+
+                val list = snapshot?.documents
+                    ?.mapNotNull { doc ->
+                        // Convert the DocumentSnapshot into a Tool data class
+                        doc.toObject(Tool::class.java)
+                            ?.copy(id = doc.id)  // ensure the ID is filled
+                            ?.let { tool -> doc.id to tool }
+                    }
+                    ?: emptyList()
+
+                try {
+                    trySend(list).isSuccess
+                } catch (e: Exception) {
+                    Log.e("ToolRepository", "Error sending list into Flow: ${e.message}")
+                }
+            }
+
+        // When the Flow collector is cancelled, remove the Firestore listener:
+        awaitClose {
+            listener.remove()
         }
     }
 }

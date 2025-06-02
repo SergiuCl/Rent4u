@@ -27,9 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import at.rent4u.model.Tool
 
-/**
- * Shared form component for tool creation and editing
- */
 @Composable
 fun AdminToolForm(
     initialTool: Tool,
@@ -37,7 +34,8 @@ fun AdminToolForm(
     isLoading: Boolean,
     isUpdate: Boolean = false,
     onSave: (Tool, String) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
     
@@ -158,7 +156,7 @@ fun AdminToolForm(
         
         // Buttons - different layout based on whether it's create or update
         if (isUpdate) {
-            // Update screen has side-by-side Save and Cancel buttons
+            // Update screen has save and cancel buttons
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -167,7 +165,8 @@ fun AdminToolForm(
                         Log.d("AdminToolForm", "Save clicked with tool: $tool")
                         onSave(tool, rentalRateText)
                     },
-                    enabled = !isLoading && isFormValid
+                    enabled = !isLoading && isFormValid,
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text("Save")
                 }
@@ -175,9 +174,26 @@ fun AdminToolForm(
                 Spacer(modifier = Modifier.width(8.dp))
                 
                 OutlinedButton(
-                    onClick = onCancel
+                    onClick = onCancel,
+                    modifier = Modifier.weight(1f)
                 ) {
                     Text("Cancel")
+                }
+            }
+            
+            // Add delete button below save/cancel if we're in update mode
+            if (onDelete != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Red,
+                        contentColor = Color.White
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Delete Tool")
                 }
             }
         } else {
