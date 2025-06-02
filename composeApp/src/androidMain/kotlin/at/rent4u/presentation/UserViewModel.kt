@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
+import at.rent4u.model.UserDetails
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
@@ -27,7 +28,8 @@ class UserViewModel @Inject constructor(
         phone: String
     ): Pair<Boolean, String?> {
         _isLoading.value = true
-        val result = userRepository.registerUser(email, password, username, firstName, lastName, phone)
+        val result =
+            userRepository.registerUser(email, password, username, firstName, lastName, phone)
         _isLoading.value = false
         return result
     }
@@ -47,5 +49,28 @@ class UserViewModel @Inject constructor(
 
     fun setToastMessage(message: String) {
         _toastMessage.value = message
+    }
+
+    suspend fun getUserDetails(userId: String): UserDetails {
+        return userRepository.getUserDetails(userId)
+    }
+
+    suspend fun updateUserDetails(
+        userId: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        email: String,
+        phone: String
+    ) {
+        userRepository.updateUserDetails(userId, username, firstName, lastName, email, phone)
+    }
+
+    suspend fun deleteUser(userId: String) {
+        userRepository.deleteUser(userId)
+    }
+
+    suspend fun getCurrentUserId(): String? {
+        return userRepository.getCurrentUserId()
     }
 }

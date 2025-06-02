@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import at.rent4u.model.UserDetails // Ensure the UserDetails class is imported
 
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -77,4 +78,49 @@ class UserRepository @Inject constructor(
             null
         }
     }
+
+    suspend fun getUserDetails(userId: String): UserDetails {
+        val doc = firestore.collection("users").document(userId).get().await()
+        return UserDetails(
+            username = doc.getString("username") ?: "",
+            firstName = doc.getString("firstName") ?: "",
+            lastName = doc.getString("lastName") ?: "",
+            email = doc.getString("email") ?: "",
+            phone = doc.getString("phone") ?: ""
+        )
+    }
+
+    suspend fun updateUserDetails(
+        userId: String,
+        username: String,
+        firstName: String,
+        lastName: String,
+        email: String,
+        phone: String
+    ) {
+        // Update the authenticated user's email
+        auth.currentUser?.let { firebaseUser ->
+            try {
+                firebaseUser.updateEmail(email).await()
+            } catch (e: Exception) {
+                // Handle or rethrow if needed
+            }
+        }
+        // Now update Firestore document
+        val userData: Map<String, Any> = mapOf(
+            "username" to username,
+            "firstName" to firstName,
+            "lastName" to lastName,
+            "email" to email,
+            "phone" to phone
+        )
+        firestore.collection("users").document(userId).update(userData).await()
+    }
+
+    suspend fun deleteUser(userId: String) {
+        firestore.collection("users").document(userId).delete().await()
+        auth.currentUser?.delete()?.await()
+    }
+
+
 }

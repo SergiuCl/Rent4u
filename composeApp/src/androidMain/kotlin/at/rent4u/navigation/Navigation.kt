@@ -1,5 +1,6 @@
 package at.rent4u.navigation
 
+import EditProfileScreen
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -90,6 +91,11 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         composable(Screen.Profile.route) {
             Log.d("NavGraph", "Navigated to Profile")
             ProfileScreen(navController)
+        }
+
+        composable(Screen.EditProfile.route) {
+            Log.d("NavGraph", "Navigated to EditProfile")
+            EditProfileScreen(navController)
         }
 
         composable(Screen.Register.route) {

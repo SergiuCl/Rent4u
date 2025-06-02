@@ -52,6 +52,21 @@ fun ProfileScreen(navController: NavController) {
                 Text("My Bookings")
             }
 
+            Button(
+                onClick = {
+                    navController.navigate(Screen.EditProfile.route)
+                },
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(bottom = 16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White
+                )
+            ) {
+                Text("View Profile")
+            }
+
             Spacer(modifier = Modifier.weight(1f))
 
             Button(
