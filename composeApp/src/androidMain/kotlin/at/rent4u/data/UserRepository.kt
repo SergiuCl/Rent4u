@@ -60,6 +60,16 @@ class UserRepository @Inject constructor(
 
             firestore.collection("users").document(uid).set(userData).await()
 
+            // Send email verification to the newly registered user
+            try {
+                result.user?.sendEmailVerification()?.await()
+                Log.d("UserRepository", "Verification email sent to $email")
+            } catch (e: Exception) {
+                Log.e("UserRepository", "Failed to send verification email: ${e.message}")
+                // We don't return false here because the account was created successfully
+                // The verification email is a secondary step
+            }
+
             true to null
         } catch (e: FirebaseAuthUserCollisionException) {
             false to "Err.mail.taken"
@@ -222,6 +232,13 @@ class UserRepository @Inject constructor(
             }
 
             try {
+                // Check if the current user's email is verified
+                if (!currentUser.isEmailVerified) {
+                    // Send verification email to the current email first
+                    currentUser.sendEmailVerification().await()
+                    throw Exception("Please verify your current email before changing to a new one. A verification email has been sent.")
+                }
+
                 // Update email in Firebase Authentication
                 currentUser.updateEmail(newEmail).await()
 
@@ -229,7 +246,7 @@ class UserRepository @Inject constructor(
                 firestore.collection("users").document(userId).update("email", newEmail).await()
 
                 try {
-                    // Send verification email
+                    // Send verification email to the new address
                     currentUser.sendEmailVerification().await()
                 } catch (e: Exception) {
                     // Just log this error but don't throw

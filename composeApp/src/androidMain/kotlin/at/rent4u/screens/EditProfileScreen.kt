@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -58,6 +60,7 @@ fun EditProfileScreen(navController: NavController) {
     var showChangePasswordDialog by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
         userId = viewModel.getCurrentUserId()
@@ -76,7 +79,8 @@ fun EditProfileScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .verticalScroll(scrollState), // Added vertical scroll to make content scrollable
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -203,6 +207,17 @@ fun EditProfileScreen(navController: NavController) {
             Divider(modifier = Modifier.fillMaxWidth(0.9f))
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Danger Zone Section
+            Text(
+                text = "Danger Zone",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.fillMaxWidth(0.9f),
+                fontWeight = FontWeight.Bold,
+                color = Color.Red
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Delete Account Button
             Button(
                 onClick = { showDeleteConfirmation = true },
@@ -216,6 +231,9 @@ fun EditProfileScreen(navController: NavController) {
             ) {
                 Text("Delete Account")
             }
+
+            // Extra space at the bottom to ensure scrolling works well
+            Spacer(modifier = Modifier.height(80.dp))
 
             if (showDeleteConfirmation) {
                 DeleteConfirmationDialog(
