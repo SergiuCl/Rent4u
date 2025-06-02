@@ -6,6 +6,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import at.rent4u.model.UserDetails // Ensure the UserDetails class is imported
+import com.google.firebase.auth.EmailAuthProvider
 
 class UserRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -95,26 +96,46 @@ class UserRepository @Inject constructor(
         username: String,
         firstName: String,
         lastName: String,
-        email: String,
+        newEmail: String,
+        password: String,
         phone: String
     ) {
-        // Update the authenticated user's email
-        auth.currentUser?.let { firebaseUser ->
-            try {
-                firebaseUser.updateEmail(email).await()
-            } catch (e: Exception) {
-                // Handle or rethrow if needed
-            }
-        }
-        // Now update Firestore document
-        val userData: Map<String, Any> = mapOf(
+        val currentUser = auth.currentUser ?: throw Exception("No logged-in user")
+        val currentEmail = currentUser.email ?: throw Exception("Current user has no email")
+
+        val userData = mapOf(
             "username" to username,
             "firstName" to firstName,
             "lastName" to lastName,
-            "email" to email,
             "phone" to phone
         )
+
+        // Update Firestore user data first (except email)
         firestore.collection("users").document(userId).update(userData).await()
+
+        // If email is being changed, handle re-authentication and email update
+        if (newEmail != currentEmail) {
+            if (password.isEmpty()) {
+                throw Exception("Password is required to change email")
+            }
+
+            try {
+                // Re-authenticate with current credentials
+                val credential = EmailAuthProvider.getCredential(currentEmail, password)
+                currentUser.reauthenticate(credential).await()
+
+                // Update email in Firebase Authentication
+                currentUser.updateEmail(newEmail).await()
+
+                // Update email in Firestore
+                firestore.collection("users").document(userId).update("email", newEmail).await()
+
+                // Send verification email
+                currentUser.sendEmailVerification().await()
+            } catch (e: Exception) {
+                throw Exception("Failed to update email: ${e.message}")
+            }
+        }
     }
 
     suspend fun deleteUser(userId: String) {

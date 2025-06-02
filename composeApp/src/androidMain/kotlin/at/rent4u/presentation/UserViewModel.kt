@@ -61,9 +61,10 @@ class UserViewModel @Inject constructor(
         firstName: String,
         lastName: String,
         email: String,
+        oldPassword: String,
         phone: String
     ) {
-        userRepository.updateUserDetails(userId, username, firstName, lastName, email, phone)
+        userRepository.updateUserDetails(userId, username, firstName, lastName, email, oldPassword, phone)
     }
 
     suspend fun deleteUser(userId: String) {

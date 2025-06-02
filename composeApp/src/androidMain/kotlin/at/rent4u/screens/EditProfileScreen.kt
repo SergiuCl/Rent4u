@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -41,8 +42,12 @@ fun EditProfileScreen(navController: NavController) {
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") } // Added password field
+    var originalEmail by remember { mutableStateOf("") } // To track if email was changed
     val coroutineScope = rememberCoroutineScope()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         userId = viewModel.getCurrentUserId()
@@ -52,6 +57,7 @@ fun EditProfileScreen(navController: NavController) {
             firstName = userDetails.firstName
             lastName = userDetails.lastName
             email = userDetails.email
+            originalEmail = userDetails.email // Store original email
             phone = userDetails.phone
         }
     }
@@ -105,15 +111,43 @@ fun EditProfileScreen(navController: NavController) {
                 label = { Text("Phone") },
                 modifier = Modifier.fillMaxWidth(0.9f)
             )
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password field (only required if email is changed)
+            if (email != originalEmail) {
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Password (required to change email)") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        viewModel.updateUserDetails(
-                            userId!!, username, firstName, lastName, email, phone
-                        )
-                        navController.popBackStack()
+                        try {
+                            viewModel.updateUserDetails(
+                                userId!!, username, firstName, lastName, email, password, phone
+                            )
+                            if (email != originalEmail) {
+                                viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
+                                // Log the user out if the email was changed
+                                viewModel.logout()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            } else {
+                                navController.popBackStack()
+                            }
+                        } catch (e: Exception) {
+                            errorMessage = "Failed to update profile: ${e.message}"
+                            showErrorDialog = true
+                        }
                     }
                 },
                 modifier = Modifier
@@ -139,6 +173,7 @@ fun EditProfileScreen(navController: NavController) {
             ) {
                 Text("Delete Account")
             }
+
             if (showDeleteConfirmation) {
                 DeleteConfirmationDialog(
                     entityType = "user",
@@ -154,6 +189,19 @@ fun EditProfileScreen(navController: NavController) {
                     },
                     onDismiss = {
                         showDeleteConfirmation = false
+                    }
+                )
+            }
+
+            if (showErrorDialog) {
+                AlertDialog(
+                    onDismissRequest = { showErrorDialog = false },
+                    title = { Text("Error") },
+                    text = { Text(errorMessage) },
+                    confirmButton = {
+                        TextButton(onClick = { showErrorDialog = false }) {
+                            Text("OK")
+                        }
                     }
                 )
             }
