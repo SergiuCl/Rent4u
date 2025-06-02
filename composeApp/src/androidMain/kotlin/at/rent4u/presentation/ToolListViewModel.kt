@@ -25,8 +25,6 @@ class ToolListViewModel @Inject constructor(
 
     // Backing flow for all tools observed from Firestore
     private val _allTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
-    // Expose allTools if needed; otherwise use filteredTools only
-    // val allTools: StateFlow<List<Pair<String, Tool>>> = _allTools
 
     private val _isFetchingTool = MutableStateFlow(false)
     val isFetchingTool: StateFlow<Boolean> = _isFetchingTool
@@ -34,53 +32,83 @@ class ToolListViewModel @Inject constructor(
     private val _isLoadingMore = MutableStateFlow(false)
     val isLoadingMore: StateFlow<Boolean> = _isLoadingMore
 
+    // Initial loading state
+    private val _isInitialLoading = MutableStateFlow(true)
+    val isInitialLoading: StateFlow<Boolean> = _isInitialLoading
+
     private val _filters = MutableStateFlow(ToolFilter())
     val filters: StateFlow<ToolFilter> = _filters.asStateFlow()
 
     // This is the flow your UI should collect from.
     private val _filteredTools = MutableStateFlow<List<Pair<String, Tool>>>(emptyList())
     val filteredTools: StateFlow<List<Pair<String, Tool>>> = _filteredTools.asStateFlow()
+    
+    // Pagination properties
+    private val PAGE_SIZE = 5
+    private var currentPage = 0
+    private var allFilteredTools = listOf<Pair<String, Tool>>()
+    
+    private val _hasMoreTools = MutableStateFlow(true)
+    val hasMoreTools: StateFlow<Boolean> = _hasMoreTools
 
     init {
-        // 1. Start collecting the repo’s Flow of all tools
+        // 1. Start collecting the repo's Flow of all tools
         viewModelScope.launch {
+            _isInitialLoading.value = true
             toolRepository.observeAllTools()
                 .collectLatest { toolsList ->
                     _allTools.value = toolsList
                     applyFilters(toolsList) // pass the list into applyFilters
+                    _isInitialLoading.value = false
                 }
         }
-        // 2) Immediately check “am I admin?” and keep it up to date
-        //    If `userRepository.isCurrentUserAdmin()` is itself a Flow, collect it.
-        //    If it’s a suspend function, call it once.
+        // 2) Immediately check "am I admin?" and keep it up to date
         viewModelScope.launch {
             val adminStatus = userRepository.isCurrentUserAdmin()
             _isAdmin.value = adminStatus
         }
     }
 
-
     fun loadMoreTools() {
-        if (_isLoadingMore.value) return
+        if (_isLoadingMore.value || !_hasMoreTools.value) return
 
         viewModelScope.launch {
             _isLoadingMore.value = true
-            Log.d("ToolListVM", "Fetching all tools")
-
-            // Fetch all tools in one go
-            val allTools = toolRepository.getToolsPaged(null)
-            Log.d("ToolListVM", "Repository returned ${allTools.size} tools")
-
-            // If needed, update _allTools here or trigger filtering
-            // _allTools.value = allTools
-            // applyFilters(allTools)
-
+            
+            // Add small delay to make loading indicator visible
+            kotlinx.coroutines.delay(300)
+            
+            val nextPage = currentPage + 1
+            val startIndex = currentPage * PAGE_SIZE
+            val endIndex = nextPage * PAGE_SIZE
+            
+            // Make sure we don't go beyond the list bounds
+            if (startIndex < allFilteredTools.size) {
+                val nextBatch = allFilteredTools.subList(
+                    startIndex, 
+                    minOf(endIndex, allFilteredTools.size)
+                )
+                
+                // Add this batch to the current displayed tools
+                _filteredTools.value = _filteredTools.value + nextBatch
+                currentPage = nextPage
+                
+                // Check if we've loaded all tools
+                _hasMoreTools.value = endIndex < allFilteredTools.size
+                
+                Log.d("ToolListVM", "Loaded more tools: now showing ${_filteredTools.value.size}/${allFilteredTools.size}")
+            } else {
+                _hasMoreTools.value = false
+            }
+            
             _isLoadingMore.value = false
         }
     }
 
     fun updateFilter(update: ToolFilter.() -> ToolFilter) {
         _filters.value = _filters.value.update()
+        // Reset pagination when filters change
+        currentPage = 0
         applyFilters(_allTools.value)
     }
 
@@ -88,7 +116,8 @@ class ToolListViewModel @Inject constructor(
         val minPrice = _filters.value.minPriceText.toDoubleOrNull()
         val maxPrice = _filters.value.maxPriceText.toDoubleOrNull()
 
-        _filteredTools.value = toolsList.filter { (_, tool) ->
+        // Filter the complete list
+        allFilteredTools = toolsList.filter { (_, tool) ->
             val price = tool.rentalRate
             (_filters.value.brand.isBlank() || tool.brand.contains(
                 _filters.value.brand,
@@ -106,6 +135,17 @@ class ToolListViewModel @Inject constructor(
                     && (minPrice == null || price >= minPrice)
                     && (maxPrice == null || price <= maxPrice)
         }
+        
+        // Reset pagination
+        currentPage = 0
+        
+        // Show only first page
+        _filteredTools.value = allFilteredTools.take(PAGE_SIZE)
+        
+        // Set whether there are more tools to load
+        _hasMoreTools.value = allFilteredTools.size > PAGE_SIZE
+        
+        Log.d("ToolListVM", "Applied filters: filtered to ${allFilteredTools.size} tools, showing initial ${_filteredTools.value.size}")
     }
 
     fun fetchToolById(toolId: String, forceRefresh: Boolean = false) {
@@ -146,10 +186,14 @@ class ToolListViewModel @Inject constructor(
 
     fun refreshTools() {
         viewModelScope.launch {
+            _isInitialLoading.value = true
+            currentPage = 0
+            
             toolRepository.observeAllTools()
                 .collectLatest { toolsList ->
                     _allTools.value = toolsList
                     applyFilters(toolsList)
+                    _isInitialLoading.value = false
                 }
         }
     }
