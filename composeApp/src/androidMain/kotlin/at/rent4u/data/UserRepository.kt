@@ -122,18 +122,32 @@ class UserRepository @Inject constructor(
             try {
                 // Re-authenticate with current credentials
                 val credential = EmailAuthProvider.getCredential(currentEmail, password)
-                currentUser.reauthenticate(credential).await()
+                try {
+                    currentUser.reauthenticate(credential).await()
+                } catch (e: Exception) {
+                    throw Exception("Authentication failed: Incorrect password")
+                }
 
-                // Update email in Firebase Authentication
-                currentUser.updateEmail(newEmail).await()
+                try {
+                    // Update email in Firebase Authentication
+                    currentUser.updateEmail(newEmail).await()
 
-                // Update email in Firestore
-                firestore.collection("users").document(userId).update("email", newEmail).await()
+                    // Update email in Firestore
+                    firestore.collection("users").document(userId).update("email", newEmail).await()
 
-                // Send verification email
-                currentUser.sendEmailVerification().await()
+                    try {
+                        // Send verification email (this is optional and shouldn't fail the whole process)
+                        currentUser.sendEmailVerification().await()
+                    } catch (e: Exception) {
+                        // Just log this error but don't throw
+                        println("Failed to send verification email: ${e.message}")
+                    }
+                } catch (e: Exception) {
+                    throw Exception("Failed to update email: ${e.message}")
+                }
             } catch (e: Exception) {
-                throw Exception("Failed to update email: ${e.message}")
+                // Throw the specific error
+                throw e
             }
         }
     }
