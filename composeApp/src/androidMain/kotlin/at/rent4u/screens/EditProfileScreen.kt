@@ -80,29 +80,6 @@ fun EditProfileScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // User banner at the top showing logged in info
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp
-                )
-            ) {
-                Text(
-                    text = "Logged in as $username",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -278,10 +255,22 @@ fun EditProfileScreen(navController: NavController) {
                     onChangeEmail = { newEmail, password ->
                         coroutineScope.launch {
                             try {
+                                // First update the email
                                 viewModel.updateUserEmail(userId!!, newEmail, password)
+
+                                // Set the toast message before navigating
                                 viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
-                                viewModel.logout()
+
+                                // Close dialog first to prevent any UI glitches
                                 showChangeEmailDialog = false
+
+                                // Important: Explicitly perform logout
+                                viewModel.logout()
+
+                                // Delay slightly to ensure logout completes before navigation
+                                kotlinx.coroutines.delay(300)
+
+                                // Navigate to login screen with backstack cleared
                                 navController.navigate(Screen.Login.route) {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -303,13 +292,23 @@ fun EditProfileScreen(navController: NavController) {
                         coroutineScope.launch {
                             try {
                                 viewModel.updateUserPassword(userId!!, currentPassword, newPassword)
-                                viewModel.setToastMessage("Password updated successfully")
+
+                                // Set toast message before navigating
+                                viewModel.setToastMessage("Password updated successfully. Please log in with your new password.")
+
+                                // Close dialog first to prevent UI glitches
                                 showChangePasswordDialog = false
-                                // Optionally log the user out after password change
-                                // viewModel.logout()
-                                // navController.navigate(Screen.Login.route) {
-                                //     popUpTo(0) { inclusive = true }
-                                // }
+
+                                // Log the user out
+                                viewModel.logout()
+
+                                // Add delay to ensure logout completes
+                                kotlinx.coroutines.delay(300)
+
+                                // Navigate to login screen
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             } catch (e: Exception) {
                                 errorMessage = "Failed to update password: ${e.message}"
                                 showErrorDialog = true
