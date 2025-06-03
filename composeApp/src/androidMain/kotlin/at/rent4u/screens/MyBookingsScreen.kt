@@ -38,6 +38,8 @@ fun MyBookingsScreen(
 
     val isLoading by viewModel.isLoading.collectAsState()
 
+    var showPastBookings by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.fetchUserBookings()
     }
@@ -54,9 +56,23 @@ fun MyBookingsScreen(
             Text("My Bookings", style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // only show active bookings, not the ones from the past
-            val activeBookings = remember(bookings.value) {
-                getActiveBookingsSorted(bookings.value)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = showPastBookings,
+                    onCheckedChange = { showPastBookings = it }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Show past bookings")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val filteredBookings = remember(bookings.value, showPastBookings) {
+                if (showPastBookings) {
+                    bookings.value.sortedByDescending { LocalDate.parse(it.startDate) }
+                } else {
+                    getActiveBookingsSorted(bookings.value)
+                }
             }
 
             if (isLoading) {
@@ -66,7 +82,7 @@ fun MyBookingsScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (activeBookings.isEmpty()) {
+            } else if (filteredBookings.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -78,7 +94,7 @@ fun MyBookingsScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "You currently have no active bookings. Book a tool to get started!",
+                            text = if (showPastBookings) "No past bookings found." else "You currently have no active bookings. Book a tool to get started!",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -90,7 +106,7 @@ fun MyBookingsScreen(
                 }
             } else {
                 LazyColumn {
-                    items(activeBookings) { booking ->
+                    items(filteredBookings) { booking ->
                         val tool = tools.value[booking.toolId]
                         if (tool != null) {
                             Card(
@@ -122,16 +138,17 @@ fun MyBookingsScreen(
                                             style = MaterialTheme.typography.bodySmall
                                         )
 
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        Button(
-                                            onClick = { bookingToCancel = booking },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.error,
-                                                contentColor = MaterialTheme.colorScheme.onError
-                                            )
-                                        ) {
-                                            Text("Cancel Booking")
+                                        if (!showPastBookings || LocalDate.parse(booking.endDate).isAfter(LocalDate.now())) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Button(
+                                                onClick = { bookingToCancel = booking },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = MaterialTheme.colorScheme.error,
+                                                    contentColor = MaterialTheme.colorScheme.onError
+                                                )
+                                            ) {
+                                                Text("Cancel Booking")
+                                            }
                                         }
                                     }
                                 }
