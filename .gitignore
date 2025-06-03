@@ -18,3 +18,9 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 **/generated/
+/.gitignore 2
+/build.gradle 2.kts
+/gradle 2.properties
+/gradlew 2
+/gradlew 2.bat
+/settings.gradle 2.kts
