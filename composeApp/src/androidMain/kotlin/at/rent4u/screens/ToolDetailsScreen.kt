@@ -51,7 +51,10 @@ fun ToolDetailsScreen(
     // 1) As soon as this screen appears, ask the VM to load exactly this one tool
     LaunchedEffect(toolId) {
         Log.d("ToolDetails", "LaunchedEffect: fetching tool for id = $toolId")
-        viewModel.fetchToolById(toolId, forceRefresh = true) // Always force refresh when entering details screen
+        viewModel.fetchToolById(
+            toolId,
+            forceRefresh = true
+        ) // Always force refresh when entering details screen
     }
 
     // 2) Observe the filteredTools flow, which will contain exactly [toolId -> Tool] once fetch completes
@@ -70,7 +73,7 @@ fun ToolDetailsScreen(
 
     // 5) Check admin permission
     val isAdmin by viewModel.isAdmin.collectAsState()
-    
+
     // Deletion state
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val deletionSuccess by adminViewModel.deletionSuccess.collectAsState()
@@ -85,7 +88,7 @@ fun ToolDetailsScreen(
             adminViewModel.clearToastMessage()
         }
     }
-    
+
     // Handle deletion success
     LaunchedEffect(deletionSuccess) {
         if (deletionSuccess == true) {
@@ -174,12 +177,18 @@ fun ToolDetailsScreen(
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
-                        
+
                         // Edit button
                         Button(
                             onClick = {
                                 Log.d("ToolDetails", "Edit clicked for toolId = $toolId")
-                                navController.navigate(Screen.AdminToolUpdate.createRoute(toolId))
+                                val cleanToolId = if (toolId.contains("/") && toolId.trim().split("/").isNotEmpty()) {
+                                    toolId.trim().split("/").first()
+                                } else {
+                                    Log.e("ToolDetails", "Invalid toolId format: $toolId")
+                                    ""
+                                }
+                                navController.navigate(Screen.AdminToolUpdate.createRoute(cleanToolId))
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -188,7 +197,7 @@ fun ToolDetailsScreen(
                         ) {
                             Text("Edit Tool")
                         }
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
 
                     }
@@ -211,11 +220,11 @@ fun ToolDetailsScreen(
             }
         }
     }
-    
+
     // Show delete confirmation dialog if needed
     if (showDeleteConfirmation && tool != null) {
         DeleteConfirmationDialog(
-            toolName = "${tool.brand} ${tool.modelNumber}",
+            entityName = "${tool.brand} ${tool.modelNumber}",
             onConfirm = {
                 Log.d("ToolDetails", "Confirming deletion of tool ID: $toolId")
                 adminViewModel.deleteTool(toolId)
@@ -223,7 +232,9 @@ fun ToolDetailsScreen(
             },
             onDismiss = {
                 showDeleteConfirmation = false
-            }
+
+            },
+            entityType = "tool",
         )
     }
 }

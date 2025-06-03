@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -54,6 +55,7 @@ import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolFilter
 import at.rent4u.presentation.ToolListViewModel
 import coil.compose.AsyncImage
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun ToolListScreen(navController: NavController) {
@@ -61,20 +63,33 @@ fun ToolListScreen(navController: NavController) {
 
     val viewModel: ToolListViewModel = hiltViewModel()
     val isAdmin by viewModel.isAdmin.collectAsState()
-    Log.d("ToolList", "isAdmin = $isAdmin")
-
+    
     val tools by viewModel.filteredTools.collectAsState()
-    Log.d("ToolList", "Collected filteredTools: size = ${tools.size}")
-
     val listState = rememberLazyListState()
     val isLoadingMore by viewModel.isLoadingMore.collectAsState()
-    Log.d("ToolList", "isLoadingMore = $isLoadingMore")
-
+    val isInitialLoading by viewModel.isInitialLoading.collectAsState()
+    val hasMoreTools by viewModel.hasMoreTools.collectAsState()
+    
     var showFilters by remember { mutableStateOf(false) }
 
-    // Collect the latest list of tools (id → Tool)
-    val toolsList by viewModel.filteredTools.collectAsState()
-
+    // Detect when user has scrolled to the bottom and load more tools
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItemsNumber = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+            
+            // Check if we're near the end of the list (last 2 items)
+            lastVisibleItemIndex > (totalItemsNumber - 2) && totalItemsNumber > 0
+        }
+        .distinctUntilChanged()
+        .collect { isNearBottom ->
+            if (isNearBottom && hasMoreTools && !isLoadingMore) {
+                Log.d("ToolListScreen", "Near bottom, loading more tools")
+                viewModel.loadMoreTools()
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar(navController) },
@@ -95,86 +110,124 @@ fun ToolListScreen(navController: NavController) {
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        Log.d("ToolListScreen", "About to render LazyColumn with ${tools.size} items")
-        LazyColumn(
-            state = listState,
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
         ) {
-
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+            // Show loading spinner during initial load
+            if (isInitialLoading) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .clickable { showFilters = !showFilters }
-                            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = if (showFilters) "Hide Filters" else "Show Filters",
-                            color = Color.Black
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = if (showFilters) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = Color.Black
-                        )
-                    }
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Loading tools...",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            item {
-                AnimatedVisibility(
-                    visible = showFilters,
-                    enter = expandVertically(),
-                    exit = shrinkVertically()
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
                 ) {
-                    Column {
-                        FilterSection(viewModel)
-                        Button(
-                            onClick = { viewModel.updateFilter { ToolFilter() } },
-                            modifier = Modifier.align(Alignment.End)
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            Text("Reset Filters")
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth(0.9f)
+                                    .clickable { showFilters = !showFilters }
+                                    .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = if (showFilters) "Hide Filters" else "Show Filters",
+                                    color = Color.Black
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = if (showFilters) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = Color.Black
+                                )
+                            }
                         }
                     }
-                }
-            }
 
-            itemsIndexed(tools) { index, (id, tool) ->
-                ToolListItem(
-                    tool = tool,
-                    isLastItem = index == tools.lastIndex,
-                    onClick = {
-                        navController.navigate(Screen.ToolDetails.createRoute(id))
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
 
-            if (isLoadingMore) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    item {
+                        AnimatedVisibility(
+                            visible = showFilters,
+                            enter = expandVertically(),
+                            exit = shrinkVertically()
+                        ) {
+                            Column {
+                                FilterSection(viewModel)
+                                Button(
+                                    onClick = { viewModel.updateFilter { ToolFilter() } },
+                                    modifier = Modifier.align(Alignment.End)
+                                ) {
+                                    Text("Reset Filters")
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (tools.isEmpty() && !isLoadingMore && !isInitialLoading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    "No tools found matching your criteria",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    } else {
+                        itemsIndexed(tools) { index, (id, tool) ->
+                            ToolListItem(
+                                tool = tool,
+                                isLastItem = index == tools.lastIndex && !hasMoreTools,
+                                onClick = {
+                                    navController.navigate(Screen.ToolDetails.createRoute(id))
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+                    }
+
+                    // Show loading indicator at bottom when loading more tools
+                    if (isLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            }
+                        }
                     }
                 }
             }
