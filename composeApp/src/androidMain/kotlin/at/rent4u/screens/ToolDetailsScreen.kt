@@ -2,7 +2,11 @@ package at.rent4u.screens
 
 import android.util.Log
 import android.widget.Toast
-
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +52,10 @@ fun ToolDetailsScreen(
     adminViewModel: AdminToolViewModel = hiltViewModel(),
     onEditClick: (Tool) -> Unit
 ) {
+    // Initialize localized strings based on current locale
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) { LocalizedStringProvider(context) }
     // 1) As soon as this screen appears, ask the VM to load exactly this one tool
     LaunchedEffect(toolId) {
         Log.d("ToolDetails", "LaunchedEffect: fetching tool for id = $toolId")
@@ -79,7 +87,6 @@ fun ToolDetailsScreen(
     val deletionSuccess by adminViewModel.deletionSuccess.collectAsState()
     val adminIsLoading by adminViewModel.isLoading.collectAsState()
     val toastMessage by adminViewModel.toastMessage.collectAsState()
-    val context = LocalContext.current
 
     // Handle toast messages
     LaunchedEffect(toastMessage) {
@@ -165,7 +172,7 @@ fun ToolDetailsScreen(
                                 contentColor = Color.Black
                             )
                         ) {
-                            Text("Book this Tool")
+                            Text(strings.getString(StringResourceId.BOOK_THIS_TOOL))
                         }
                     }
 
@@ -190,7 +197,7 @@ fun ToolDetailsScreen(
                                 .height(50.dp),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Edit Tool")
+                            Text(strings.getString(StringResourceId.EDIT_TOOL))
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -210,7 +217,7 @@ fun ToolDetailsScreen(
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Tool not found", style = MaterialTheme.typography.bodyLarge)
+                    Text(strings.getString(StringResourceId.TOOL_NOT_FOUND), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }

@@ -128,7 +128,8 @@ enum class StringResourceId {
     EMAIL_VERIFIED,
     USER,
     SELECT_BOOKING_DATES,
-    CONFIRM_BOOKING
+    CONFIRM_BOOKING,
+    BOOK_THIS_TOOL
 }
 
 expect class LocalizedStringProvider() : StringResource {
