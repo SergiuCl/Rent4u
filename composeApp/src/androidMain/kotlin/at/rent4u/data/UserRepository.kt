@@ -223,55 +223,46 @@ class UserRepository @Inject constructor(
         }
 
         try {
-            // Re-authenticate with current credentials
-            val credential = EmailAuthProvider.getCredential(currentEmail, password)
-            try {
-                currentUser.reauthenticate(credential).await()
-            } catch (e: Exception) {
-                throw Exception("Authentication failed: Incorrect password")
-            }
-
-            try {
-                // Force refresh the user data to ensure we have the latest verification status
-                currentUser.reload().await()
-
-                // Try to update email directly without checking verification status
-                try {
-                    // Update email in Firebase Authentication
-                    currentUser.updateEmail(newEmail).await()
-
-                    // Update email in Firestore
-                    firestore.collection("users").document(userId).update("email", newEmail).await()
-
-                    // Send verification email to the new address
-                    try {
-                        currentUser.sendEmailVerification().await()
-                    } catch (e: Exception) {
-                        // Just log this error but don't throw
-                        Log.w("UserRepository", "Failed to send verification email: ${e.message}")
-                    }
-                } catch (e: Exception) {
-                    // If direct update fails, try a workaround
-                    if (e.message?.contains("Please verify", ignoreCase = true) == true ||
-                        e.message?.contains("This operation is not allowed", ignoreCase = true) == true) {
-
-                        // Workaround: Use a custom token if verification check is blocking the update
-                        // Update only in Firestore for now and inform the user
-                        firestore.collection("users").document(userId).update("email", newEmail).await()
-                        throw Exception("Email updated in our database. You'll need to sign in with your original email until verification is complete.")
-                    } else {
-                        throw Exception("Failed to update email: ${e.message}")
-                    }
-                }
-            } catch (e: Exception) {
-                throw e
-            }
+            reauthenticateUser(currentUser, currentEmail, password)
+            currentUser.reload().await()
+            updateEmailInFirebase(currentUser, newEmail)
+            updateEmailInFirestore(userId, newEmail)
+            sendVerificationEmail(currentUser)
         } catch (e: Exception) {
-            // Throw the specific error
-            throw e
+            handleEmailUpdateError(e, userId, newEmail)
         }
     }
 
+    private suspend fun reauthenticateUser(user: FirebaseAuth, email: String, password: String) {
+        val credential = EmailAuthProvider.getCredential(email, password)
+        user.reauthenticate(credential).await()
+    }
+
+    private suspend fun updateEmailInFirebase(user: FirebaseAuth, newEmail: String) {
+        user.updateEmail(newEmail).await()
+    }
+
+    private suspend fun updateEmailInFirestore(userId: String, newEmail: String) {
+        firestore.collection("users").document(userId).update("email", newEmail).await()
+    }
+
+    private suspend fun sendVerificationEmail(user: FirebaseAuth) {
+        try {
+            user.sendEmailVerification().await()
+        } catch (e: Exception) {
+            Log.w("UserRepository", "Failed to send verification email: ${e.message}")
+        }
+    }
+
+    private fun handleEmailUpdateError(e: Exception, userId: String, newEmail: String) {
+        if (e.message?.contains("Please verify", ignoreCase = true) == true ||
+            e.message?.contains("This operation is not allowed", ignoreCase = true) == true) {
+            firestore.collection("users").document(userId).update("email", newEmail).await()
+            throw Exception("Email updated in our database. You'll need to sign in with your original email until verification is complete.")
+        } else {
+            throw Exception("Failed to update email: ${e.message}")
+        }
+    }
     /**
      * Updates the email address in Firebase Authentication
      * This is the primary method that handles authentication changes
