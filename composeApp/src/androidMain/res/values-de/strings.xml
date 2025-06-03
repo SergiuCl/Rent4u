@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hallo</string>
+    <string name="welcome">Willkommen bei Rent4U</string>
+    <string name="login">Anmelden</string>
+    <string name="register">Registrieren</string>
+    <string name="email">E-Mail</string>
+    <string name="password">Passwort</string>
+    <string name="book_now">Jetzt buchen</string>
+    <string name="book_tool">Werkzeug buchen</string>
+    <string name="booking_success">Buchung erfolgreich</string>
+    <string name="booking_error">Buchung fehlgeschlagen</string>
+    <string name="start_date">Startdatum</string>
+    <string name="end_date">Enddatum</string>
+    <string name="profile">Profil</string>
+    <string name="settings">Einstellungen</string>
+    <string name="my_bookings">Meine Buchungen</string>
+    <string name="logout">Abmelden</string>
+    <string name="update_profile">Profil aktualisieren</string>
+    <string name="save">Speichern</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="profile_information">Profilinformationen</string>
+    <string name="save_profile">Profil speichern</string>
+
+    <!-- Tool list screen -->
+    <string name="show_filters">Filter anzeigen</string>
+    <string name="hide_filters">Filter ausblenden</string>
+    <string name="reset_filters">Filter zurücksetzen</string>
+    <string name="loading_tools">Werkzeuge werden geladen...</string>
+    <string name="no_tools_found">Keine Werkzeuge gefunden, die Ihren Kriterien entsprechen</string>
+    <string name="add_tool">Werkzeug hinzufügen</string>
+    <string name="min_price">Mindestpreis</string>
+    <string name="max_price">Höchstpreis</string>
+    <string name="tool_image">Werkzeugbild</string>
+
+    <!-- Tool details screen -->
+    <string name="tool_not_found">Werkzeug nicht gefunden</string>
+    <string name="edit_tool">Werkzeug bearbeiten</string>
+    <string name="delete_tool">Werkzeug löschen</string>
+    <string name="brand">Marke</string>
+    <string name="model">Modell</string>
+    <string name="description">Beschreibung</string>
+    <string name="availability">Verfügbarkeit</string>
+    <string name="power_source">Energiequelle</string>
+    <string name="type">Typ</string>
+    <string name="voltage">Spannung</string>
+    <string name="fuel_type">Kraftstoffart</string>
+    <string name="weight">Gewicht</string>
+    <string name="dimensions">Abmessungen</string>
+    <string name="rental_rate">Mietpreis</string>
+
+    <!-- My bookings screen -->
+    <string name="no_active_bookings">Sie haben derzeit keine aktiven Buchungen. Buchen Sie ein Werkzeug, um zu beginnen!</string>
+    <string name="browse_tools">Werkzeuge durchsuchen</string>
+    <string name="cancel_booking">Buchung stornieren</string>
+    <string name="confirm_cancellation">Stornierung bestätigen</string>
+    <string name="cancellation_confirmation">Sind Sie sicher, dass Sie diese Buchung stornieren möchten?</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+
+    <!-- Profile screen -->
+    <string name="logged_in_as">Angemeldet als %s</string>
+    <string name="view_profile">Profil anzeigen</string>
+
+    <!-- Contact us screen -->
+    <string name="contact_us">Kontaktieren Sie uns</string>
+    <string name="contact_info">Wenn Sie Fragen, Probleme oder Feedback haben, können Sie uns über das folgende Formular kontaktieren. Wir helfen Ihnen gerne!</string>
+    <string name="your_message">Ihre Nachricht</string>
+    <string name="send">Senden</string>
+
+    <!-- Login/register screens -->
+    <string name="welcome_back">Willkommen zurück</string>
+    <string name="stay_logged_in">Eingeloggt bleiben</string>
+    <string name="dont_have_account">Noch keinen Account? Registrieren</string>
+    <string name="already_have_account">Haben Sie bereits ein Konto? Anmelden</string>
+    <string name="create_account">Konto erstellen</string>
+    <string name="username">Benutzername</string>
+    <string name="first_name">Vorname</string>
+    <string name="last_name">Nachname</string>
+    <string name="phone_number">Telefonnummer</string>
+    <string name="confirm_password">Passwort bestätigen</string>
+
+    <!-- Edit profile screen -->
+    <string name="security_settings">Sicherheitseinstellungen</string>
+    <string name="change_email">E-Mail ändern</string>
+    <string name="change_password">Passwort ändern</string>
+    <string name="danger_zone">Gefahrenzone</string>
+    <string name="delete_account">Konto löschen</string>
+
+    <!-- Dialog strings -->
+    <string name="error">Fehler</string>
+    <string name="ok">OK</string>
+    <string name="verification_email_sent">Bestätigungs-E-Mail gesendet</string>
+    <string name="verification_email_message">Eine Bestätigungs-E-Mail wurde an Ihre E-Mail-Adresse gesendet. Bitte überprüfen Sie Ihren Posteingang und folgen Sie dem Link, um Ihre E-Mail zu verifizieren.</string>
+</resources>

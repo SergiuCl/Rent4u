@@ -37,12 +37,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.UserViewModel
 import at.rent4u.screens.BottomNavBar
 import at.rent4u.screens.ChangeEmailDialog
@@ -53,6 +57,15 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun EditProfileScreen(navController: NavController) {
+
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+
+    // 2) Erzeuge den Lokalisierungs-Provider neu, wenn die Locale sich ändert
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val viewModel: UserViewModel = hiltViewModel()
     var userId by remember { mutableStateOf<String?>(null) }
     var username by remember { mutableStateOf("") }
@@ -166,7 +179,7 @@ fun EditProfileScreen(navController: NavController) {
 
                 // User Profile Data Section
                 Text(
-                    text = "Profile Information",
+                    text = strings.getString(StringResourceId.PROFILE_INFORMATION),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     fontWeight = FontWeight.Bold
@@ -300,7 +313,7 @@ fun EditProfileScreen(navController: NavController) {
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Save Profile")
+                    Text(strings.getString(StringResourceId.SAVE_PROFILE))
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))

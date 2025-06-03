@@ -47,10 +47,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.model.Tool
 import at.rent4u.presentation.ToolFilter
 import at.rent4u.presentation.ToolListViewModel
@@ -60,6 +64,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun ToolListScreen(navController: NavController) {
     Log.d("ToolListScreen", "Composing ToolListScreen")
+
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
 
     val viewModel: ToolListViewModel = hiltViewModel()
     val isAdmin by viewModel.isAdmin.collectAsState()
@@ -104,7 +115,7 @@ fun ToolListScreen(navController: NavController) {
                         .padding(16.dp)
                         .size(56.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Tool")
+                    Icon(Icons.Default.Add, contentDescription = strings.getString(StringResourceId.ADD_TOOL))
                 }
             }
         },
@@ -128,7 +139,7 @@ fun ToolListScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Loading tools...",
+                        text = strings.getString(StringResourceId.LOADING_TOOLS),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -154,7 +165,10 @@ fun ToolListScreen(navController: NavController) {
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = if (showFilters) "Hide Filters" else "Show Filters",
+                                    text = if (showFilters)
+                                        strings.getString(StringResourceId.HIDE_FILTERS)
+                                    else
+                                        strings.getString(StringResourceId.SHOW_FILTERS),
                                     color = Color.Black
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -178,12 +192,12 @@ fun ToolListScreen(navController: NavController) {
                             exit = shrinkVertically()
                         ) {
                             Column {
-                                FilterSection(viewModel)
+                                FilterSection(viewModel, strings)
                                 Button(
                                     onClick = { viewModel.updateFilter { ToolFilter() } },
                                     modifier = Modifier.align(Alignment.End)
                                 ) {
-                                    Text("Reset Filters")
+                                    Text(strings.getString(StringResourceId.RESET_FILTERS))
                                 }
                             }
                         }
@@ -198,7 +212,7 @@ fun ToolListScreen(navController: NavController) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    "No tools found matching your criteria",
+                                    strings.getString(StringResourceId.NO_TOOLS_FOUND),
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -236,7 +250,7 @@ fun ToolListScreen(navController: NavController) {
 }
 
 @Composable
-fun FilterSection(viewModel: ToolListViewModel) {
+fun FilterSection(viewModel: ToolListViewModel, strings: LocalizedStringProvider) {
     val filters by viewModel.filters.collectAsState()
 
     Column(modifier = Modifier
@@ -246,19 +260,19 @@ fun FilterSection(viewModel: ToolListViewModel) {
         OutlinedTextField(
             value = filters.brand,
             onValueChange = { viewModel.updateFilter { copy(brand = it) } },
-            label = { Text("Brand") },
+            label = { Text(strings.getString(StringResourceId.BRAND)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         OutlinedTextField(
             value = filters.type,
             onValueChange = { viewModel.updateFilter { copy(type = it) } },
-            label = { Text("Type") },
+            label = { Text(strings.getString(StringResourceId.TYPE)) },
             modifier = Modifier.fillMaxWidth()
         )
 
         DropDownField(
-            label = "Availability",
+            label = strings.getString(StringResourceId.AVAILABILITY),
             options = listOf("", "available", "unavailable"),
             selectedValue = filters.availabilityStatus,
             onChange = { viewModel.updateFilter { copy(availabilityStatus = it) } }
@@ -268,14 +282,14 @@ fun FilterSection(viewModel: ToolListViewModel) {
             OutlinedTextField(
                 value = filters.minPriceText,
                 onValueChange = { viewModel.updateFilter { copy(minPriceText = it) } },
-                label = { Text("Min Price") },
+                label = { Text(strings.getString(StringResourceId.MIN_PRICE)) },
                 modifier = Modifier.weight(1f).padding(end = 4.dp)
             )
 
             OutlinedTextField(
                 value = filters.maxPriceText,
                 onValueChange = { viewModel.updateFilter { copy(maxPriceText = it) } },
-                label = { Text("Max Price") },
+                label = { Text(strings.getString(StringResourceId.MAX_PRICE)) },
                 modifier = Modifier.weight(1f).padding(start = 4.dp)
             )
         }
@@ -288,6 +302,13 @@ fun ToolListItem(
     isLastItem: Boolean = false,
     onClick: () -> Unit
 ) {
+    // Get the localized string provider
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -303,7 +324,7 @@ fun ToolListItem(
             ) {
                 AsyncImage(
                     model = tool.image,
-                    contentDescription = "Tool Image",
+                    contentDescription = strings.getString(StringResourceId.TOOL_IMAGE),
                     modifier = Modifier
                         .size(120.dp)
                         .clip(RoundedCornerShape(8.dp))
@@ -334,6 +355,7 @@ fun ToolListItem(
                     }
 
                     val cleanPrice = tool.rentalRate
+                    // Format with localized currency symbol and rental rate
                     Text("€$cleanPrice", style = MaterialTheme.typography.bodySmall)
                 }
             }

@@ -24,11 +24,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +39,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(navController: NavController) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val scrollState = rememberScrollState()
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -68,14 +78,14 @@ fun RegisterScreen(navController: NavController) {
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
         ) {
-            Text("Create Account", style = MaterialTheme.typography.headlineMedium)
+            Text(strings.getString(StringResourceId.CREATE_ACCOUNT), style = MaterialTheme.typography.headlineMedium)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = username,
                 onValueChange = { username = it },
-                label = { Text("Username") },
+                label = { Text(strings.getString(StringResourceId.USERNAME)) },
                 singleLine = true
             )
 
@@ -84,7 +94,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("First Name") },
+                label = { Text(strings.getString(StringResourceId.FIRST_NAME)) },
                 singleLine = true
             )
 
@@ -93,7 +103,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = lastName,
                 onValueChange = { lastName = it },
-                label = { Text("Last Name") },
+                label = { Text(strings.getString(StringResourceId.LAST_NAME)) },
                 singleLine = true
             )
 
@@ -102,7 +112,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email Address") },
+                label = { Text(strings.getString(StringResourceId.EMAIL)) },
                 singleLine = true
             )
 
@@ -111,7 +121,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = phoneNumber,
                 onValueChange = { phoneNumber = it },
-                label = { Text("Phone Number") },
+                label = { Text(strings.getString(StringResourceId.PHONE_NUMBER)) },
                 singleLine = true
             )
 
@@ -120,7 +130,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(strings.getString(StringResourceId.PASSWORD)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -130,7 +140,7 @@ fun RegisterScreen(navController: NavController) {
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
+                label = { Text(strings.getString(StringResourceId.CONFIRM_PASSWORD)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -176,7 +186,7 @@ fun RegisterScreen(navController: NavController) {
                     }
                 }
             }) {
-                Text("Register")
+                Text(strings.getString(StringResourceId.REGISTER))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -184,7 +194,7 @@ fun RegisterScreen(navController: NavController) {
             TextButton(enabled = !isLoading, onClick = {
                 navController.popBackStack()
             }) {
-                Text("Already have an account? Login")
+                Text(strings.getString(StringResourceId.ALREADY_HAVE_ACCOUNT))
             }
         }
     }

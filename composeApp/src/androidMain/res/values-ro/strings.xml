@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Salut</string>
+    <string name="welcome">Bine ați venit la Rent4U</string>
+    <string name="login">Autentificare</string>
+    <string name="register">Înregistrare</string>
+    <string name="email">E-mail</string>
+    <string name="password">Parolă</string>
+    <string name="book_now">Rezervă acum</string>
+    <string name="book_tool">Rezervă unealta</string>
+    <string name="booking_success">Rezervare reușită</string>
+    <string name="booking_error">Rezervare eșuată</string>
+    <string name="start_date">Data de început</string>
+    <string name="end_date">Data de sfârșit</string>
+    <string name="profile">Profil</string>
+    <string name="settings">Setări</string>
+    <string name="my_bookings">Rezervările mele</string>
+    <string name="logout">Deconectare</string>
+    <string name="update_profile">Actualizare profil</string>
+    <string name="save">Salvează</string>
+    <string name="cancel">Anulează</string>
+    <string name="confirm">Confirmă</string>
+    <string name="profile_information">Informații profil</string>
+    <string name="save_profile">Salvează profil</string>
+
+    <!-- Tool list screen -->
+    <string name="show_filters">Afișează filtrele</string>
+    <string name="hide_filters">Ascunde filtrele</string>
+    <string name="reset_filters">Resetează filtrele</string>
+    <string name="loading_tools">Se încarcă uneltele...</string>
+    <string name="no_tools_found">Nu s-au găsit unelte care să corespundă criteriilor</string>
+    <string name="add_tool">Adaugă unealtă</string>
+    <string name="min_price">Preț minim</string>
+    <string name="max_price">Preț maxim</string>
+    <string name="tool_image">Imagine unealtă</string>
+
+    <!-- Tool details screen -->
+    <string name="tool_not_found">Unealta nu a fost găsită</string>
+    <string name="edit_tool">Editează unealta</string>
+    <string name="delete_tool">Șterge unealta</string>
+    <string name="brand">Marcă</string>
+    <string name="model">Model</string>
+    <string name="description">Descriere</string>
+    <string name="availability">Disponibilitate</string>
+    <string name="power_source">Sursă de alimentare</string>
+    <string name="type">Tip</string>
+    <string name="voltage">Tensiune</string>
+    <string name="fuel_type">Tip combustibil</string>
+    <string name="weight">Greutate</string>
+    <string name="dimensions">Dimensiuni</string>
+    <string name="rental_rate">Tarif închiriere</string>
+
+    <!-- My bookings screen -->
+    <string name="no_active_bookings">În prezent nu aveți rezervări active. Rezervați o unealtă pentru a începe!</string>
+    <string name="browse_tools">Răsfoiește unelte</string>
+    <string name="cancel_booking">Anulează rezervarea</string>
+    <string name="confirm_cancellation">Confirmă anularea</string>
+    <string name="cancellation_confirmation">Sunteți sigur că doriți să anulați această rezervare?</string>
+    <string name="yes">Da</string>
+    <string name="no">Nu</string>
+
+    <!-- Profile screen -->
+    <string name="logged_in_as">Conectat ca %s</string>
+    <string name="view_profile">Vezi profil</string>
+
+    <!-- Contact us screen -->
+    <string name="contact_us">Contactează-ne</string>
+    <string name="contact_info">Dacă aveți întrebări, probleme sau feedback, ne puteți contacta folosind formularul de mai jos. Suntem aici să ajutăm!</string>
+    <string name="your_message">Mesajul tău</string>
+    <string name="send">Trimite</string>
+
+    <!-- Login/register screens -->
+    <string name="welcome_back">Bine ai revenit</string>
+    <string name="stay_logged_in">Rămâi conectat</string>
+    <string name="dont_have_account">Nu ai un cont? Înregistrează-te</string>
+    <string name="already_have_account">Ai deja un cont? Autentifică-te</string>
+    <string name="create_account">Creează cont</string>
+    <string name="username">Nume de utilizator</string>
+    <string name="first_name">Prenume</string>
+    <string name="last_name">Nume</string>
+    <string name="phone_number">Număr de telefon</string>
+    <string name="confirm_password">Confirmă parola</string>
+
+    <!-- Edit profile screen -->
+    <string name="security_settings">Setări securitate</string>
+    <string name="change_email">Schimbă e-mail</string>
+    <string name="change_password">Schimbă parola</string>
+    <string name="danger_zone">Zona de risc</string>
+    <string name="delete_account">Șterge cont</string>
+
+    <!-- Dialog strings -->
+    <string name="error">Eroare</string>
+    <string name="ok">OK</string>
+    <string name="verification_email_sent">E-mail de verificare trimis</string>
+    <string name="verification_email_message">Un e-mail de verificare a fost trimis la adresa dvs. Vă rugăm să verificați căsuța poștală și să urmați link-ul pentru a vă verifica e-mailul.</string>
+</resources>
