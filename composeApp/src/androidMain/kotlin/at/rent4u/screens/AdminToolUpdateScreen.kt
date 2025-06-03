@@ -21,9 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.AdminToolViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +44,11 @@ fun AdminToolUpdateScreen(
         viewModel.loadTool(toolId)
     }
 
+    // Initialize localized strings based on current locale
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) { LocalizedStringProvider(context) }
+
     // Observe the loaded tool from ViewModel
     val toolState by viewModel.editingTool.collectAsState()
     Log.d("AdminToolUpdate", "Collected editingTool: $toolState")
@@ -51,7 +59,6 @@ fun AdminToolUpdateScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     // For toast messages
-    val context = LocalContext.current
     val toastMessage by viewModel.toastMessage.collectAsState()
 
     // For delete confirmation dialog
@@ -67,7 +74,7 @@ fun AdminToolUpdateScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit Tool") },
+                title = { Text(text = strings.getString(StringResourceId.EDIT_TOOL)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -89,7 +96,9 @@ fun AdminToolUpdateScreen(
                 // Use shared form component
                 AdminToolForm(
                     initialTool = toolState!!,
-                    title = "Edit Tool Details",
+                    title = strings.getString(StringResourceId.EDIT_TOOL) + strings.getString(
+                        StringResourceId.DETAILS
+                    ),
                     isLoading = isLoading,
                     isUpdate = true,
                     onSave = { tool, rentalRateText ->

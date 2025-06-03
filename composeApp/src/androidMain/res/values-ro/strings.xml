@@ -69,12 +69,14 @@
     <string name="cancellation_confirmation">Sunteți sigur că doriți să anulați această rezervare?</string>
     <string name="yes">Da</string>
     <string name="no">Nu</string>
+    <string name="booking_date_range">De la: %1$s Pana: %2$s</string>
 
 
     <!-- Profile screen -->
+    <string name="details">Detalii</string>
     <string name="logged_in_as">Conectat ca %s</string>
     <string name="view_profile">Vezi profil</string>
-    <string name="loading_profile">Se încarcă profilul...</string>
+    <string name="loading_profile">Se încarcă profilul…</string>
 
     <!-- Contact us screen -->
     <string name="contact_us">Contactează-ne</string>

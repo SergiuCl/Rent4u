@@ -67,6 +67,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="booking_date_range">From: %1$s To: %2$s</string>
+    <string name="details">Details</string>
 
     <!-- Profile screen -->
     <string name="logged_in_as">Logged in as %s</string>

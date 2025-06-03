@@ -129,7 +129,13 @@ enum class StringResourceId {
     USER,
     SELECT_BOOKING_DATES,
     CONFIRM_BOOKING,
-    BOOK_THIS_TOOL
+    BOOK_THIS_TOOL,
+    AVAILABILITY_STATUS,
+    RENTAL_RATE_EURO,
+    IMAGE_URL,
+    DELETE_TOOL_BUTTON,
+    CREATE,
+    DETAILS,
 }
 
 expect class LocalizedStringProvider() : StringResource {

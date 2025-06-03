@@ -72,6 +72,7 @@
     <string name="booking_date_range">Von: %1$s Bis: %2$s</string>
 
     <!-- Profile screen -->
+    <string name="details">Details</string>
     <string name="logged_in_as">Angemeldet als %s</string>
     <string name="view_profile">Profil anzeigen</string>
     <string name="loading_profile">Profil wird geladen…</string>
