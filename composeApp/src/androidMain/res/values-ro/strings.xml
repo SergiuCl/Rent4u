@@ -50,17 +50,26 @@
     <string name="dimensions">Dimensiuni</string>
     <string name="rental_rate">Tarif închiriere</string>
 
+    <!-- BookingScreen -->
+    <string name="brand_label">Marcă</string>
+    <string name="model_label">Model</string>
+    <string name="type_label">Tip</string>
+    <string name="rental_rate_label">Tarif închiriere</string>
+    <string name="select_booking_date">Selectați o dată de rezervare</string>
+    <string name="confirm_booking">Confirmă rezervarea</string>
+    <string name="booking_range_overlap">Perioada selectată include date deja rezervate!</string>
+
     <!-- My bookings screen -->
-    <string name="no_active_bookings">În prezent nu aveți rezervări active. Rezervați o unealtă pentru a începe!</string>
+    <string name="no_active_bookings">În prezent nu aveți nicio rezervare activă. Rezervați o unealtă pentru a începe!</string>
     <string name="no_past_bookings">Nu aveți rezervări anterioare</string>
-    <string name="show_past_bookings">Arată rezervările anterioare</string>
+    <string name="show_past_bookings">Afișează rezervările anterioare</string>
     <string name="browse_tools">Răsfoiește unelte</string>
     <string name="cancel_booking">Anulează rezervarea</string>
     <string name="confirm_cancellation">Confirmă anularea</string>
     <string name="cancellation_confirmation">Sunteți sigur că doriți să anulați această rezervare?</string>
     <string name="yes">Da</string>
     <string name="no">Nu</string>
-    <string name="booking_date_range">De la: %1$s Până la: %2$s</string>
+
 
     <!-- Profile screen -->
     <string name="logged_in_as">Conectat ca %s</string>
@@ -124,5 +133,20 @@
     <string name="email_not_verified">E-mail neverificat</string>
     <string name="email_verified">E-mail verificat</string>
     <string name="user">Utilizator</string>
+
+    <!-- DeleteConfirmationDialog -->
+    <string name="delete_entity">Șterge %1$s</string>
+    <string name="delete_entity_confirmation">Sunteți sigur că doriți să ștergeți %1$s „%2$s”?</string>
+    <string name="action_cannot_be_undone">Această acțiune nu poate fi anulată.</string>
+    <string name="type_yes_to_confirm">Tastați "yes" pentru a confirma ștergerea acestui %1$s:</string>
+
+    <!-- AdminToolForm -->
+    <string name="availability_status">Stare disponibilitate</string>
+    <string name="rental_rate_euro">Tarif închiriere (€)</string>
+    <string name="image_url">URL imagine</string>
+    <string name="create">Creare</string>
+    <string name="admin_controls">Controale admin</string>
+    <string name="book_this_tool">Rezervă această unealtă</string>
+    <string name="delete_tool_button">Șterge unealta</string>
 </resources>
 

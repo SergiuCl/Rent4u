@@ -182,13 +182,8 @@ fun ToolDetailsScreen(
                         Button(
                             onClick = {
                                 Log.d("ToolDetails", "Edit clicked for toolId = $toolId")
-                                val cleanToolId = if (toolId.contains("/") && toolId.trim().split("/").isNotEmpty()) {
-                                    toolId.trim().split("/").first()
-                                } else {
-                                    Log.e("ToolDetails", "Invalid toolId format: $toolId")
-                                    ""
-                                }
-                                navController.navigate(Screen.AdminToolUpdate.createRoute(cleanToolId))
+                                // Pass the toolId directly without any manipulation
+                                onEditClick(tool)
                             },
                             modifier = Modifier
                                 .fillMaxWidth()

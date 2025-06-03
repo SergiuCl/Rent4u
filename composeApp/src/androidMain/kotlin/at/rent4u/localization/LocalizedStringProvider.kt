@@ -156,6 +156,8 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
             StringResourceId.PASSWORD_UPDATE_SUCCESS -> R.string.password_update_success
             StringResourceId.PASSWORD_UPDATE_ERROR -> R.string.password_update_error
             StringResourceId.USER -> R.string.user
+            StringResourceId.SELECT_BOOKING_DATES -> R.string.select_booking_date
+            StringResourceId.CONFIRM_BOOKING -> R.string.confirm_booking
         }
         return context.getString(resourceId)
     }

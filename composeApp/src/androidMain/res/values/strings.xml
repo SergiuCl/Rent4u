@@ -37,19 +37,24 @@
 
     <!-- Tool details screen -->
     <string name="tool_not_found">Tool not found</string>
-    <string name="edit_tool">Edit Tool</string>
     <string name="delete_tool">Delete Tool</string>
     <string name="brand">Brand</string>
     <string name="model">Model</string>
     <string name="description">Description</string>
     <string name="availability">Availability</string>
-    <string name="power_source">Power Source</string>
     <string name="type">Type</string>
-    <string name="voltage">Voltage</string>
-    <string name="fuel_type">Fuel Type</string>
     <string name="weight">Weight</string>
     <string name="dimensions">Dimensions</string>
     <string name="rental_rate">Rental Rate</string>
+
+    <!-- BookingScreen -->
+    <string name="brand_label">Brand</string>
+    <string name="model_label">Model</string>
+    <string name="type_label">Type</string>
+    <string name="rental_rate_label">Rental Rate</string>
+    <string name="select_booking_date">Select a booking date</string>
+    <string name="confirm_booking">Confirm Booking</string>
+    <string name="booking_range_overlap">Selected range includes booked dates!</string>
 
     <!-- My bookings screen -->
     <string name="no_active_bookings">You currently have no active bookings. Book a tool to get started!</string>
@@ -125,5 +130,24 @@
     <string name="email_not_verified">Email not verified</string>
     <string name="email_verified">Email verified</string>
     <string name="user">User</string>
+
+    <!-- DeleteConfirmationDialog -->
+    <string name="delete_entity">Delete %1$s</string>
+    <string name="delete_entity_confirmation">Are you sure you want to delete the %1$s \"%2$s\"?</string>
+    <string name="action_cannot_be_undone">This action cannot be undone.</string>
+    <string name="type_yes_to_confirm">Type "yes" to confirm deletion of this %1$s:</string>
+
+    <!-- AdminToolForm -->
+    <string name="availability_status">Availability Status</string>
+    <string name="power_source">Power Source</string>
+    <string name="fuel_type">Fuel Type</string>
+    <string name="voltage">Voltage</string>
+    <string name="rental_rate_euro">Rental Rate (€)</string>
+    <string name="image_url">Image URL</string>
+    <string name="create">Create</string>
+    <string name="admin_controls">Admin Controls</string>
+    <string name="book_this_tool">Book this Tool</string>
+    <string name="edit_tool">Edit Tool</string>
+    <string name="delete_tool_button">Delete Tool</string>
 </resources>
 

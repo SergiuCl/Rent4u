@@ -50,6 +50,15 @@
     <string name="dimensions">Abmessungen</string>
     <string name="rental_rate">Mietpreis</string>
 
+    <!-- BookingScreen -->
+    <string name="brand_label">Marke</string>
+    <string name="model_label">Modell</string>
+    <string name="type_label">Typ</string>
+    <string name="rental_rate_label">Mietpreis</string>
+    <string name="select_booking_date">Buchungsdatum auswählen</string>
+    <string name="confirm_booking">Buchung bestätigen</string>
+    <string name="booking_range_overlap">Der ausgewählte Zeitraum überschneidet sich mit gebuchten Daten!</string>
+
     <!-- My bookings screen -->
     <string name="no_active_bookings">Sie haben derzeit keine aktiven Buchungen. Buchen Sie ein Werkzeug, um zu beginnen!</string>
     <string name="no_past_bookings">Sie haben keine vergangenen Buchungen</string>
@@ -124,5 +133,22 @@
     <string name="email_not_verified">E-Mail nicht verifiziert</string>
     <string name="email_verified">E-Mail verifiziert</string>
     <string name="user">Benutzer</string>
+
+    <!-- DeleteConfirmationDialog -->
+    <string name="delete_entity">Lösche %1$s</string>
+    <string name="delete_entity_confirmation">Sind Sie sicher, dass Sie das %1$s „%2$s“ löschen möchten?</string>
+    <string name="action_cannot_be_undone">Diese Aktion kann nicht rückgängig gemacht werden.</string>
+    <string name="type_yes_to_confirm">Geben Sie „yes“ ein, um das Löschen dieses %1$s zu bestätigen:</string>
+
+    <!-- AdminToolForm -->
+    <string name="availability_status">Verfügbarkeitsstatus</string>
+    <string name="rental_rate_euro">Mietpreis (€)</string>
+    <string name="image_url">Bild-URL</string>
+    <string name="create">Erstellen</string>
+    <string name="admin_controls">Admin-Steuerung</string>
+    <string name="book_this_tool">Dieses Werkzeug buchen</string>
+    <string name="delete_tool_button">Werkzeug löschen</string>
+
+
 </resources>
 
