@@ -174,7 +174,7 @@ class UserRepository @Inject constructor(
                         currentUser.sendEmailVerification().await()
                     } catch (e: Exception) {
                         // Just log this error but don't throw
-                        println("Failed to send verification email: ${e.message}")
+                        Log.e("UserRepository", "Failed to send verification email: ${e.message}")
                     }
                 } catch (e: Exception) {
                     throw Exception("Failed to update email: ${e.message}")
