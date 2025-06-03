@@ -182,7 +182,12 @@ fun ToolDetailsScreen(
                         Button(
                             onClick = {
                                 Log.d("ToolDetails", "Edit clicked for toolId = $toolId")
-                                val cleanToolId = toolId.trim().split("/").first()
+                                val cleanToolId = if (toolId.contains("/") && toolId.trim().split("/").isNotEmpty()) {
+                                    toolId.trim().split("/").first()
+                                } else {
+                                    Log.e("ToolDetails", "Invalid toolId format: $toolId")
+                                    ""
+                                }
                                 navController.navigate(Screen.AdminToolUpdate.createRoute(cleanToolId))
                             },
                             modifier = Modifier
