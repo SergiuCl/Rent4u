@@ -46,6 +46,8 @@ fun MyBookingsScreen(
     val toastMessage by viewModel.toastMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    var showPastBookings by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.fetchUserBookings()
     }
@@ -62,9 +64,23 @@ fun MyBookingsScreen(
             Text(strings.getString(StringResourceId.MY_BOOKINGS), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
-            // only show active bookings, not the ones from the past
-            val activeBookings = remember(bookings.value) {
-                getActiveBookingsSorted(bookings.value)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = showPastBookings,
+                    onCheckedChange = { showPastBookings = it }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Show past bookings")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            val filteredBookings = remember(bookings.value, showPastBookings) {
+                if (showPastBookings) {
+                    bookings.value.sortedByDescending { LocalDate.parse(it.startDate) }
+                } else {
+                    getActiveBookingsSorted(bookings.value)
+                }
             }
 
             if (isLoading) {
@@ -74,7 +90,7 @@ fun MyBookingsScreen(
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (activeBookings.isEmpty()) {
+            } else if (filteredBookings.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -86,7 +102,8 @@ fun MyBookingsScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = strings.getString(StringResourceId.NO_ACTIVE_BOOKINGS),
+                            text =  if (showPastBookings) strings.getString(StringResourceId.NO_PAST_BOOKINGS) else strings.getString(StringResourceId.NO_ACTIVE_BOOKINGS),
+
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -98,7 +115,7 @@ fun MyBookingsScreen(
                 }
             } else {
                 LazyColumn {
-                    items(activeBookings) { booking ->
+                    items(filteredBookings) { booking ->
                         val tool = tools.value[booking.toolId]
                         if (tool != null) {
                             Card(
@@ -140,6 +157,7 @@ fun MyBookingsScreen(
                                             )
                                         ) {
                                             Text(strings.getString(StringResourceId.CANCEL_BOOKING))
+
                                         }
                                     }
                                 }
