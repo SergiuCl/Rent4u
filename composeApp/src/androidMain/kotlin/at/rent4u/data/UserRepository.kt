@@ -233,12 +233,12 @@ class UserRepository @Inject constructor(
         }
     }
 
-    private suspend fun reauthenticateUser(user: FirebaseAuth, email: String, password: String) {
+    private suspend fun reauthenticateUser(user: com.google.firebase.auth.FirebaseUser, email: String, password: String) {
         val credential = EmailAuthProvider.getCredential(email, password)
         user.reauthenticate(credential).await()
     }
 
-    private suspend fun updateEmailInFirebase(user: FirebaseAuth, newEmail: String) {
+    private suspend fun updateEmailInFirebase(user: com.google.firebase.auth.FirebaseUser, newEmail: String) {
         user.updateEmail(newEmail).await()
     }
 
@@ -246,7 +246,7 @@ class UserRepository @Inject constructor(
         firestore.collection("users").document(userId).update("email", newEmail).await()
     }
 
-    private suspend fun sendVerificationEmail(user: FirebaseAuth) {
+    private suspend fun sendVerificationEmail(user: com.google.firebase.auth.FirebaseUser) {
         try {
             user.sendEmailVerification().await()
         } catch (e: Exception) {
@@ -254,7 +254,7 @@ class UserRepository @Inject constructor(
         }
     }
 
-    private fun handleEmailUpdateError(e: Exception, userId: String, newEmail: String) {
+    private suspend fun handleEmailUpdateError(e: Exception, userId: String, newEmail: String) {
         if (e.message?.contains("Please verify", ignoreCase = true) == true ||
             e.message?.contains("This operation is not allowed", ignoreCase = true) == true) {
             firestore.collection("users").document(userId).update("email", newEmail).await()
@@ -263,6 +263,7 @@ class UserRepository @Inject constructor(
             throw Exception("Failed to update email: ${e.message}")
         }
     }
+
     /**
      * Updates the email address in Firebase Authentication
      * This is the primary method that handles authentication changes
@@ -282,6 +283,14 @@ class UserRepository @Inject constructor(
             throw Exception("Password is required to change email")
         }
 
+        // First, ensure we have the latest user data including verification status
+        try {
+            currentUser.reload().await()
+        } catch (e: Exception) {
+            Log.w("UserRepository", "Failed to refresh user data: ${e.message}")
+            // Continue anyway, as this is not critical
+        }
+
         // Re-authenticate with current credentials
         val credential = EmailAuthProvider.getCredential(currentEmail, password)
         try {
@@ -290,7 +299,7 @@ class UserRepository @Inject constructor(
             throw Exception("Authentication failed: Incorrect password")
         }
 
-        // Force refresh the user data
+        // Force refresh the user data again after re-authentication
         currentUser.reload().await()
 
         try {
@@ -298,9 +307,30 @@ class UserRepository @Inject constructor(
             currentUser.updateEmail(newEmail).await()
             Log.d("UserRepository", "Email updated in Firebase Auth to: $newEmail")
         } catch (e: Exception) {
+            // Log the exact error for debugging
+            Log.e("UserRepository", "Email update error: ${e.message}", e)
+
             if (e.message?.contains("Please verify", ignoreCase = true) == true ||
                 e.message?.contains("operation is not allowed", ignoreCase = true) == true) {
-                throw Exception("Email change requires a verified email. Please verify your current email first.")
+
+                // Check if email is actually verified (should be, but double-check)
+                if (currentUser.isEmailVerified) {
+                    // This is the bug - we're getting a verification error for a verified email
+                    Log.w("UserRepository", "Received verification error despite email being verified!")
+
+                    // Try a workaround: re-authenticate again and retry
+                    try {
+                        currentUser.reauthenticate(credential).await()
+                        currentUser.updateEmail(newEmail).await()
+                        Log.d("UserRepository", "Email updated successfully on second attempt")
+                        return
+                    } catch (retryEx: Exception) {
+                        Log.e("UserRepository", "Retry also failed: ${retryEx.message}")
+                        throw Exception("Your email appears to be verified, but Firebase still requires verification. Please try again later or contact support.")
+                    }
+                } else {
+                    throw Exception("Email change requires a verified email. Please verify your current email first.")
+                }
             } else {
                 throw Exception("Failed to update email in authentication: ${e.message}")
             }
