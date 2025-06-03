@@ -27,7 +27,7 @@
     <string name="show_filters">Afișează filtrele</string>
     <string name="hide_filters">Ascunde filtrele</string>
     <string name="reset_filters">Resetează filtrele</string>
-    <string name="loading_tools">Se încarcă uneltele...</string>
+    <string name="loading_tools">Se încarcă uneltele…</string>
     <string name="no_tools_found">Nu s-au găsit unelte care să corespundă criteriilor</string>
     <string name="add_tool">Adaugă unealtă</string>
     <string name="min_price">Preț minim</string>
@@ -52,16 +52,20 @@
 
     <!-- My bookings screen -->
     <string name="no_active_bookings">În prezent nu aveți rezervări active. Rezervați o unealtă pentru a începe!</string>
+    <string name="no_past_bookings">Nu aveți rezervări anterioare</string>
+    <string name="show_past_bookings">Arată rezervările anterioare</string>
     <string name="browse_tools">Răsfoiește unelte</string>
     <string name="cancel_booking">Anulează rezervarea</string>
     <string name="confirm_cancellation">Confirmă anularea</string>
     <string name="cancellation_confirmation">Sunteți sigur că doriți să anulați această rezervare?</string>
     <string name="yes">Da</string>
     <string name="no">Nu</string>
+    <string name="booking_date_range">De la: %1$s Până la: %2$s</string>
 
     <!-- Profile screen -->
     <string name="logged_in_as">Conectat ca %s</string>
     <string name="view_profile">Vezi profil</string>
+    <string name="loading_profile">Se încarcă profilul...</string>
 
     <!-- Contact us screen -->
     <string name="contact_us">Contactează-ne</string>
@@ -87,10 +91,38 @@
     <string name="change_password">Schimbă parola</string>
     <string name="danger_zone">Zona de risc</string>
     <string name="delete_account">Șterge cont</string>
+    <string name="current_password">Parola actuală</string>
+    <string name="new_password">Parolă nouă</string>
+    <string name="confirm_new_password">Confirmă parola nouă</string>
+    <string name="password_length_error">Parola trebuie să aibă cel puțin 6 caractere</string>
+    <string name="passwords_dont_match">Parolele nu se potrivesc</string>
+    <string name="current_password_required">Parola actuală este obligatorie</string>
+    <string name="password_security_hint">Pentru securitate, parola dvs. ar trebui să aibă cel puțin 6 caractere și să includă litere, numere și simboluri.</string>
+    <string name="email_verification_needed">E-mailul dvs. nu este verificat. Vă rugăm să verificați pentru a activa toate funcțiile.</string>
+    <string name="email_verified_message">E-mailul dvs. este verificat</string>
+    <string name="verify">Verifică</string>
+    <string name="email_verification_required">Verificarea e-mailului este necesară înainte de a schimba parola</string>
+    <string name="profile_update_success">Profil actualizat cu succes</string>
+    <string name="profile_update_error">Actualizarea profilului a eșuat</string>
+    <string name="email_update_success">E-mail actualizat cu succes</string>
+    <string name="email_update_error">Actualizarea e-mailului a eșuat</string>
+    <string name="password_update_success">Parolă actualizată cu succes</string>
+    <string name="password_update_error">Actualizarea parolei a eșuat</string>
+
+    <!-- Navigation -->
+    <string name="home">Acasă</string>
 
     <!-- Dialog strings -->
     <string name="error">Eroare</string>
     <string name="ok">OK</string>
     <string name="verification_email_sent">E-mail de verificare trimis</string>
     <string name="verification_email_message">Un e-mail de verificare a fost trimis la adresa dvs. Vă rugăm să verificați căsuța poștală și să urmați link-ul pentru a vă verifica e-mailul.</string>
+    <string name="delete_user_confirmation">Șterge contul</string>
+    <string name="delete_user_warning">Această acțiune nu poate fi anulată.</string>
+    <string name="delete_confirmation_prompt">Sunteți sigur că doriți să ștergeți contul? Aceasta va elimina definitiv toate datele dvs.</string>
+    <string name="delete">Șterge</string>
+    <string name="email_not_verified">E-mail neverificat</string>
+    <string name="email_verified">E-mail verificat</string>
+    <string name="user">Utilizator</string>
 </resources>
+

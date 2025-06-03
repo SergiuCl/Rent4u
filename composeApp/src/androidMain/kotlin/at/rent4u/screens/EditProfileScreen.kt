@@ -23,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -54,14 +53,14 @@ import at.rent4u.screens.ChangePasswordDialog
 import at.rent4u.screens.Screen
 import at.rent4u.screens.DeleteConfirmationDialog
 import kotlinx.coroutines.launch
+import androidx.compose.material3.Scaffold
 
 @Composable
 fun EditProfileScreen(navController: NavController) {
-
     val configuration = LocalConfiguration.current
     val context = LocalContext.current
 
-    // 2) Erzeuge den Lokalisierungs-Provider neu, wenn die Locale sich ändert
+    // Get localized strings
     val strings = remember(configuration) {
         LocalizedStringProvider(context)
     }
@@ -107,11 +106,11 @@ fun EditProfileScreen(navController: NavController) {
     // Initial data loading
     LaunchedEffect(Unit) {
         isLoading = true // Set loading state to true when fetching data
-        
+
         try {
             // Force refresh the user data to get the latest verification status
             viewModel.refreshCurrentUser()
-            
+
             userId = viewModel.getCurrentUserId()
             userId?.let {
                 val userDetails = viewModel.getUserDetails(it)
@@ -159,7 +158,7 @@ fun EditProfileScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Loading profile...",
+                        text = strings.getString(StringResourceId.LOADING_PROFILE),
                         style = MaterialTheme.typography.bodyLarge
                     )
                 }
@@ -190,7 +189,7 @@ fun EditProfileScreen(navController: NavController) {
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = { Text("Username") },
+                    label = { Text(strings.getString(StringResourceId.USERNAME)) },
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -198,7 +197,7 @@ fun EditProfileScreen(navController: NavController) {
                 OutlinedTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    label = { Text("First Name") },
+                    label = { Text(strings.getString(StringResourceId.FIRST_NAME)) },
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -206,7 +205,7 @@ fun EditProfileScreen(navController: NavController) {
                 OutlinedTextField(
                     value = lastName,
                     onValueChange = { lastName = it },
-                    label = { Text("Last Name") },
+                    label = { Text(strings.getString(StringResourceId.LAST_NAME)) },
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -214,7 +213,7 @@ fun EditProfileScreen(navController: NavController) {
                 OutlinedTextField(
                     value = phone,
                     onValueChange = { phone = it },
-                    label = { Text("Phone") },
+                    label = { Text(strings.getString(StringResourceId.PHONE_NUMBER)) },
                     modifier = Modifier.fillMaxWidth(0.9f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -228,20 +227,20 @@ fun EditProfileScreen(navController: NavController) {
                     OutlinedTextField(
                         value = email,
                         onValueChange = { /* Read-only field */ },
-                        label = { Text("Email") },
+                        label = { Text(strings.getString(StringResourceId.EMAIL)) },
                         modifier = Modifier.weight(1f),
                         readOnly = true,
                         trailingIcon = {
                             if (isEmailVerified) {
                                 Icon(
                                     imageVector = Icons.Filled.CheckCircle,
-                                    contentDescription = "Verified",
+                                    contentDescription = strings.getString(StringResourceId.EMAIL_VERIFIED),
                                     tint = Color.Green
                                 )
                             } else {
                                 Icon(
                                     imageVector = Icons.Filled.Warning,
-                                    contentDescription = "Not Verified",
+                                    contentDescription = strings.getString(StringResourceId.EMAIL_NOT_VERIFIED),
                                     tint = Color.Red
                                 )
                             }
@@ -257,13 +256,14 @@ fun EditProfileScreen(navController: NavController) {
                                         viewModel.sendVerificationEmail()
                                         showVerificationSentDialog = true
                                     } catch (e: Exception) {
-                                        errorMessage = "Failed to send verification email: ${e.message}"
+                                        errorMessage =
+                                            e.message ?: strings.getString(StringResourceId.ERROR)
                                         showErrorDialog = true
                                     }
                                 }
                             }
                         ) {
-                            Text("Verify")
+                            Text(strings.getString(StringResourceId.VERIFY))
                         }
                     }
                 }
@@ -271,7 +271,7 @@ fun EditProfileScreen(navController: NavController) {
                 // Email verification status text
                 if (!isEmailVerified) {
                     Text(
-                        text = "Your email is not verified. Please check your inbox or click 'Verify' to receive a new verification link.",
+                        text = strings.getString(StringResourceId.EMAIL_VERIFICATION_NEEDED),
                         color = Color.Red,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
@@ -280,7 +280,7 @@ fun EditProfileScreen(navController: NavController) {
                     )
                 } else {
                     Text(
-                        text = "Your email is verified",
+                        text = strings.getString(StringResourceId.EMAIL_VERIFIED_MESSAGE),
                         color = Color.Green,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier
@@ -299,10 +299,11 @@ fun EditProfileScreen(navController: NavController) {
                                 viewModel.updateUserProfileDetails(
                                     userId!!, username, firstName, lastName, phone
                                 )
-                                viewModel.setToastMessage("Profile updated successfully")
+                                viewModel.setToastMessage(strings.getString(StringResourceId.PROFILE_UPDATE_SUCCESS))
                                 navController.popBackStack()
                             } catch (e: Exception) {
-                                errorMessage = "Failed to update profile: ${e.message}"
+                                errorMessage =
+                                    strings.getString(StringResourceId.PROFILE_UPDATE_ERROR) + ": ${e.message}"
                                 showErrorDialog = true
                             }
                         }
@@ -322,7 +323,7 @@ fun EditProfileScreen(navController: NavController) {
 
                 // Security Section
                 Text(
-                    text = "Security Settings",
+                    text = strings.getString(StringResourceId.SECURITY_SETTINGS),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     fontWeight = FontWeight.Bold
@@ -338,7 +339,7 @@ fun EditProfileScreen(navController: NavController) {
                         containerColor = MaterialTheme.colorScheme.secondary
                     )
                 ) {
-                    Text("Change Email")
+                    Text(strings.getString(StringResourceId.CHANGE_EMAIL))
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -351,7 +352,7 @@ fun EditProfileScreen(navController: NavController) {
                         containerColor = MaterialTheme.colorScheme.secondary
                     )
                 ) {
-                    Text("Change Password")
+                    Text(strings.getString(StringResourceId.CHANGE_PASSWORD))
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -360,7 +361,7 @@ fun EditProfileScreen(navController: NavController) {
 
                 // Danger Zone Section
                 Text(
-                    text = "Danger Zone",
+                    text = strings.getString(StringResourceId.DANGER_ZONE),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.fillMaxWidth(0.9f),
                     fontWeight = FontWeight.Bold,
@@ -380,7 +381,7 @@ fun EditProfileScreen(navController: NavController) {
                         contentColor = Color.White
                     )
                 ) {
-                    Text("Delete Account")
+                    Text(strings.getString(StringResourceId.DELETE_ACCOUNT))
                 }
 
                 // Extra space at the bottom to ensure scrolling works well
@@ -388,7 +389,7 @@ fun EditProfileScreen(navController: NavController) {
 
                 if (showDeleteConfirmation) {
                     DeleteConfirmationDialog(
-                        entityType = "user",
+                        entityType = strings.getString(StringResourceId.USER),
                         entityName = username,
                         onConfirm = {
                             coroutineScope.launch {
@@ -406,11 +407,11 @@ fun EditProfileScreen(navController: NavController) {
                 if (showErrorDialog) {
                     AlertDialog(
                         onDismissRequest = { showErrorDialog = false },
-                        title = { Text("Error") },
+                        title = { Text(strings.getString(StringResourceId.ERROR)) },
                         text = { Text(errorMessage) },
                         confirmButton = {
                             TextButton(onClick = { showErrorDialog = false }) {
-                                Text("OK")
+                                Text(strings.getString(StringResourceId.OK))
                             }
                         }
                     )
@@ -419,11 +420,11 @@ fun EditProfileScreen(navController: NavController) {
                 if (showVerificationSentDialog) {
                     AlertDialog(
                         onDismissRequest = { showVerificationSentDialog = false },
-                        title = { Text("Verification Email Sent") },
-                        text = { Text("A verification email has been sent to your email address. Please check your inbox and follow the link to verify your email.") },
+                        title = { Text(strings.getString(StringResourceId.VERIFICATION_EMAIL_SENT)) },
+                        text = { Text(strings.getString(StringResourceId.VERIFICATION_EMAIL_MESSAGE)) },
                         confirmButton = {
                             TextButton(onClick = { showVerificationSentDialog = false }) {
-                                Text("OK")
+                                Text(strings.getString(StringResourceId.OK))
                             }
                         }
                     )
@@ -439,28 +440,29 @@ fun EditProfileScreen(navController: NavController) {
                                 try {
                                     // Update the email in both auth and database
                                     viewModel.updateUserEmail(userId!!, newEmail, password)
-                                    
+
                                     // Update the local email variable
                                     email = newEmail
-                                    
+
                                     // After email change, explicitly set verification to false
                                     // This ensures the UI shows correct status immediately
                                     isEmailVerified = false
-                                    
+
                                     // Set the toast message
-                                    viewModel.setToastMessage("Email updated. Please check your inbox to verify the new email.")
+                                    viewModel.setToastMessage(strings.getString(StringResourceId.EMAIL_UPDATE_SUCCESS))
 
                                     // Close dialog
                                     showChangeEmailDialog = false
 
                                     // Show verification message
                                     showVerificationSentDialog = true
-                                    
+
                                     // Trigger background refresh of verification status
                                     refreshVerificationStatus()
-                                    
+
                                 } catch (e: Exception) {
-                                    errorMessage = "Failed to update email: ${e.message}"
+                                    errorMessage =
+                                        strings.getString(StringResourceId.EMAIL_UPDATE_ERROR) + ": ${e.message}"
                                     showErrorDialog = true
                                     showChangeEmailDialog = false
                                 }
@@ -478,18 +480,23 @@ fun EditProfileScreen(navController: NavController) {
                                 try {
                                     // First, check if email is verified with a forced refresh
                                     val verified = viewModel.isCurrentEmailVerifiedWithRefresh()
-                                    
+
                                     if (!verified) {
-                                        errorMessage = "Your email must be verified before changing password. Please verify your email first."
+                                        errorMessage =
+                                            strings.getString(StringResourceId.EMAIL_VERIFICATION_REQUIRED)
                                         showErrorDialog = true
                                         showChangePasswordDialog = false
                                         return@launch
                                     }
-                                    
-                                    viewModel.updateUserPassword(userId!!, currentPassword, newPassword)
+
+                                    viewModel.updateUserPassword(
+                                        userId!!,
+                                        currentPassword,
+                                        newPassword
+                                    )
 
                                     // Set toast message before navigating
-                                    viewModel.setToastMessage("Password updated successfully. Please log in with your new password.")
+                                    viewModel.setToastMessage(strings.getString(StringResourceId.PASSWORD_UPDATE_SUCCESS))
 
                                     // Close dialog first to prevent UI glitches
                                     showChangePasswordDialog = false
@@ -505,7 +512,8 @@ fun EditProfileScreen(navController: NavController) {
                                         popUpTo(0) { inclusive = true }
                                     }
                                 } catch (e: Exception) {
-                                    errorMessage = "Failed to update password: ${e.message}"
+                                    errorMessage =
+                                        strings.getString(StringResourceId.PASSWORD_UPDATE_ERROR) + ": ${e.message}"
                                     showErrorDialog = true
                                     showChangePasswordDialog = false
                                 }

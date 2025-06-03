@@ -70,7 +70,7 @@ fun MyBookingsScreen(
                     onCheckedChange = { showPastBookings = it }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Show past bookings")
+                Text(strings.getString(StringResourceId.SHOW_PAST_BOOKINGS))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -143,7 +143,7 @@ fun MyBookingsScreen(
                                         Text(text = "${strings.getString(StringResourceId.MODEL)}: ${tool.modelNumber}")
                                         Text(text = "${strings.getString(StringResourceId.RENTAL_RATE)}: ${booking.totalAmount}€")
                                         Text(
-                                            text = "From: ${booking.startDate} To: ${booking.endDate}",
+                                            text = strings.getString(StringResourceId.BOOKING_DATE_RANGE).format(booking.startDate, booking.endDate),
                                             style = MaterialTheme.typography.bodySmall
                                         )
 

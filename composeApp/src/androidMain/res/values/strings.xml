@@ -53,16 +53,20 @@
 
     <!-- My bookings screen -->
     <string name="no_active_bookings">You currently have no active bookings. Book a tool to get started!</string>
+    <string name="no_past_bookings">You don\'t have any past bookings</string>
+    <string name="show_past_bookings">Show past bookings</string>
     <string name="browse_tools">Browse Tools</string>
     <string name="cancel_booking">Cancel Booking</string>
     <string name="confirm_cancellation">Confirm Cancellation</string>
     <string name="cancellation_confirmation">Are you sure you want to cancel this booking?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="booking_date_range">From: %1$s To: %2$s</string>
 
     <!-- Profile screen -->
     <string name="logged_in_as">Logged in as %s</string>
     <string name="view_profile">View Profile</string>
+    <string name="loading_profile">Loading profile…</string>
 
     <!-- Contact us screen -->
     <string name="contact_us">Contact Us</string>
@@ -88,10 +92,38 @@
     <string name="change_password">Change Password</string>
     <string name="danger_zone">Danger Zone</string>
     <string name="delete_account">Delete Account</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_new_password">Confirm New Password</string>
+    <string name="password_length_error">Password must be at least 6 characters</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
+    <string name="current_password_required">Current password is required</string>
+    <string name="password_security_hint">For security, your password should be at least 6 characters and include a mix of letters, numbers, and symbols.</string>
+    <string name="email_verification_needed">Your email is not verified. Please verify to enable all features.</string>
+    <string name="email_verified_message">Your email is verified</string>
+    <string name="verify">Verify</string>
+    <string name="email_verification_required">Email verification required before changing password</string>
+    <string name="profile_update_success">Profile updated successfully</string>
+    <string name="profile_update_error">Failed to update profile</string>
+    <string name="email_update_success">Email updated successfully</string>
+    <string name="email_update_error">Failed to update email</string>
+    <string name="password_update_success">Password updated successfully</string>
+    <string name="password_update_error">Failed to update password</string>
+
+    <!-- Navigation -->
+    <string name="home">Home</string>
 
     <!-- Dialog strings -->
     <string name="error">Error</string>
     <string name="ok">OK</string>
     <string name="verification_email_sent">Verification Email Sent</string>
     <string name="verification_email_message">A verification email has been sent to your email address. Please check your inbox and follow the link to verify your email.</string>
+    <string name="delete_user_confirmation">Delete Account</string>
+    <string name="delete_user_warning">This action cannot be undone.</string>
+    <string name="delete_confirmation_prompt">Are you sure you want to delete your account? This will permanently remove all your data.</string>
+    <string name="delete">Delete</string>
+    <string name="email_not_verified">Email not verified</string>
+    <string name="email_verified">Email verified</string>
+    <string name="user">User</string>
 </resources>
+

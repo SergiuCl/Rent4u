@@ -4,6 +4,7 @@ import android.content.Context
 import at.rent4u.R
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import kotlin.random.Random
 
 actual class LocalizedStringProvider constructor(private val context: Context) :
     StringResource {
@@ -64,8 +65,8 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
             StringResourceId.NO_TOOLS_FOUND -> R.string.no_tools_found
             StringResourceId.ADD_TOOL -> R.string.add_tool
             StringResourceId.MIN_PRICE -> R.string.min_price
-            StringResourceId.MAX_PRICE ->  R.string.max_price
-            StringResourceId.TOOL_IMAGE ->  R.string.tool_image
+            StringResourceId.MAX_PRICE -> R.string.max_price
+            StringResourceId.TOOL_IMAGE -> R.string.tool_image
 
             // Tool details screen
             StringResourceId.TOOL_NOT_FOUND -> R.string.tool_not_found
@@ -91,6 +92,7 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
             StringResourceId.CANCELLATION_CONFIRMATION -> R.string.cancellation_confirmation
             StringResourceId.YES -> R.string.yes
             StringResourceId.NO -> R.string.no
+            StringResourceId.BOOKING_DATE_RANGE -> R.string.booking_date_range
 
             // Profile screen
             StringResourceId.LOGGED_IN_AS -> R.string.logged_in_as
@@ -126,6 +128,34 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
             StringResourceId.OK -> R.string.ok
             StringResourceId.VERIFICATION_EMAIL_SENT -> R.string.verification_email_sent
             StringResourceId.VERIFICATION_EMAIL_MESSAGE -> R.string.verification_email_message
+            StringResourceId.NO_PAST_BOOKINGS -> R.string.no_past_bookings
+            StringResourceId.CURRENT_PASSWORD -> R.string.current_password
+            StringResourceId.NEW_PASSWORD -> R.string.new_password
+            StringResourceId.CONFIRM_NEW_PASSWORD -> R.string.confirm_new_password
+            StringResourceId.PASSWORD_LENGTH_ERROR -> R.string.password_length_error
+            StringResourceId.PASSWORDS_DONT_MATCH -> R.string.passwords_dont_match
+            StringResourceId.CURRENT_PASSWORD_REQUIRED -> R.string.current_password_required
+            StringResourceId.PASSWORD_SECURITY_HINT -> R.string.password_security_hint
+            StringResourceId.LOADING_PROFILE -> R.string.loading_profile
+            StringResourceId.SHOW_PAST_BOOKINGS -> R.string.show_past_bookings
+            StringResourceId.HOME -> R.string.home
+            StringResourceId.DELETE_USER_CONFIRMATION -> R.string.delete_user_confirmation
+            StringResourceId.DELETE_USER_WARNING -> R.string.delete_user_warning
+            StringResourceId.DELETE_CONFIRMATION_PROMPT -> R.string.delete_confirmation_prompt
+            StringResourceId.DELETE -> R.string.delete
+            StringResourceId.EMAIL_NOT_VERIFIED -> R.string.email_not_verified
+            StringResourceId.EMAIL_VERIFIED -> R.string.email_verified
+            StringResourceId.VERIFY -> R.string.verify
+            StringResourceId.EMAIL_VERIFICATION_NEEDED -> R.string.email_verification_needed
+            StringResourceId.EMAIL_VERIFIED_MESSAGE -> R.string.email_verified_message
+            StringResourceId.PROFILE_UPDATE_SUCCESS -> R.string.profile_update_success
+            StringResourceId.PROFILE_UPDATE_ERROR -> R.string.profile_update_error
+            StringResourceId.EMAIL_UPDATE_SUCCESS -> R.string.email_update_success
+            StringResourceId.EMAIL_UPDATE_ERROR -> R.string.email_update_error
+            StringResourceId.EMAIL_VERIFICATION_REQUIRED -> R.string.email_verification_required
+            StringResourceId.PASSWORD_UPDATE_SUCCESS -> R.string.password_update_success
+            StringResourceId.PASSWORD_UPDATE_ERROR -> R.string.password_update_error
+            StringResourceId.USER -> R.string.user
         }
         return context.getString(resourceId)
     }
