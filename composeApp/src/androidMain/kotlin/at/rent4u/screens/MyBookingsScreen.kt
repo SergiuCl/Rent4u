@@ -61,7 +61,10 @@ fun MyBookingsScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(strings.getString(StringResourceId.MY_BOOKINGS), style = MaterialTheme.typography.headlineMedium)
+            Text(
+                strings.getString(StringResourceId.MY_BOOKINGS),
+                style = MaterialTheme.typography.headlineMedium
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -103,7 +106,9 @@ fun MyBookingsScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text =  if (showPastBookings) strings.getString(StringResourceId.NO_PAST_BOOKINGS) else strings.getString(StringResourceId.NO_ACTIVE_BOOKINGS),
+                            text = if (showPastBookings) strings.getString(StringResourceId.NO_PAST_BOOKINGS) else strings.getString(
+                                StringResourceId.NO_ACTIVE_BOOKINGS
+                            ),
 
 
                             style = MaterialTheme.typography.bodyLarge,
@@ -134,33 +139,44 @@ fun MyBookingsScreen(
                                             .size(120.dp)
                                             .clip(RoundedCornerShape(8.dp))
                                             .clickable {
-                                                navController.navigate(Screen.ToolDetails.createRoute(booking.toolId))
+                                                navController.navigate(
+                                                    Screen.ToolDetails.createRoute(
+                                                        booking.toolId
+                                                    )
+                                                )
                                             }
                                     )
 
                                     Spacer(modifier = Modifier.width(16.dp))
 
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = "${tool.type} (${tool.brand})", style = MaterialTheme.typography.titleMedium)
+                                        Text(
+                                            text = "${tool.type} (${tool.brand})",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
                                         Text(text = "${strings.getString(StringResourceId.MODEL)}: ${tool.modelNumber}")
                                         Text(text = "${strings.getString(StringResourceId.RENTAL_RATE)}: ${booking.totalAmount}€")
                                         Text(
-                                            text = strings.getString(StringResourceId.BOOKING_DATE_RANGE).format(booking.startDate, booking.endDate),
+                                            text = strings.getString(StringResourceId.BOOKING_DATE_RANGE)
+                                                .format(booking.startDate, booking.endDate),
                                             style = MaterialTheme.typography.bodySmall
                                         )
-
-                                        Spacer(modifier = Modifier.height(8.dp))
-
-                                        Button(
-                                            onClick = { bookingToCancel = booking },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = MaterialTheme.colorScheme.error,
-                                                contentColor = MaterialTheme.colorScheme.onError
-                                            )
+                                        if (!showPastBookings || LocalDate.parse(booking.endDate)
+                                                .isAfter(LocalDate.now())
                                         ) {
-                                            Text(strings.getString(StringResourceId.CANCEL_BOOKING))
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            Button(
+                                                onClick = { bookingToCancel = booking },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = MaterialTheme.colorScheme.error,
+                                                    contentColor = MaterialTheme.colorScheme.onError
+                                                )
+                                            ) {
+                                                Text(strings.getString(StringResourceId.CANCEL_BOOKING))
 
 
+                                            }
                                         }
                                     }
                                 }
@@ -203,6 +219,8 @@ fun MyBookingsScreen(
 fun getActiveBookingsSorted(bookings: List<Booking>): List<Booking> {
     val today = LocalDate.now()
     return bookings
-        .filter { LocalDate.parse(it.endDate).isAfter(today) || LocalDate.parse(it.endDate).isEqual(today) }
+        .filter {
+            LocalDate.parse(it.endDate).isAfter(today) || LocalDate.parse(it.endDate).isEqual(today)
+        }
         .sortedBy { LocalDate.parse(it.startDate) }
 }
