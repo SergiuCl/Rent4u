@@ -26,6 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import at.rent4u.model.Tool
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 
 @Composable
 fun AdminToolForm(
@@ -38,18 +43,23 @@ fun AdminToolForm(
     onDelete: (() -> Unit)? = null
 ) {
     val scrollState = rememberScrollState()
-    
+
     // Form state
     var tool by remember { mutableStateOf(initialTool) }
-    var rentalRateText by remember { 
-        mutableStateOf(if (initialTool.rentalRate > 0) initialTool.rentalRate.toString() else "") 
+    var rentalRateText by remember {
+        mutableStateOf(if (initialTool.rentalRate > 0) initialTool.rentalRate.toString() else "")
     }
-    
+
     // Validation
     val isFormValid = tool.type.isNotBlank() &&
             tool.brand.isNotBlank() &&
             tool.availabilityStatus.isNotBlank()
-    
+
+    // Initialize localized strings based on current locale
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) { LocalizedStringProvider(context) }
+
     Column(
         modifier = Modifier
             .padding(if (isUpdate) 16.dp else 24.dp)
@@ -58,102 +68,102 @@ fun AdminToolForm(
         horizontalAlignment = if (isUpdate) Alignment.Start else Alignment.CenterHorizontally
     ) {
         Text(title, style = MaterialTheme.typography.headlineMedium)
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Availability Status - Dropdown
         DropDownField(
-            label = "Availability Status",
+            label = strings.getString(StringResourceId.AVAILABILITY_STATUS),
             options = listOf("Available", "Unavailable"),
             selectedValue = tool.availabilityStatus,
             onChange = { newValue -> tool = tool.copy(availabilityStatus = newValue) }
         )
-        
+
         // Type - Regular field
         LabeledField(
-            label = "Type", 
-            value = tool.type, 
+            label = strings.getString(StringResourceId.TYPE),
+            value = tool.type,
             onChange = { newValue -> tool = tool.copy(type = newValue) }
         )
-        
+
         // Brand - Regular field
         LabeledField(
-            label = "Brand", 
-            value = tool.brand, 
+            label = strings.getString(StringResourceId.BRAND),
+            value = tool.brand,
             onChange = { newValue -> tool = tool.copy(brand = newValue) }
         )
-        
+
         // Model Number - Regular field
         LabeledField(
-            label = "Model Number", 
-            value = tool.modelNumber, 
+            label = strings.getString(StringResourceId.MODEL),
+            value = tool.modelNumber,
             onChange = { newValue -> tool = tool.copy(modelNumber = newValue) }
         )
-        
+
         // Description - Regular field
         LabeledField(
-            label = "Description", 
-            value = tool.description, 
+            label = strings.getString(StringResourceId.DESCRIPTION),
+            value = tool.description,
             onChange = { newValue -> tool = tool.copy(description = newValue) }
         )
-        
+
         // Weight - Regular field
         LabeledField(
-            label = "Weight", 
-            value = tool.weight, 
+            label = strings.getString(StringResourceId.WEIGHT),
+            value = tool.weight,
             onChange = { newValue -> tool = tool.copy(weight = newValue) }
         )
-        
+
         // Dimensions - Regular field
         LabeledField(
-            label = "Dimensions", 
-            value = tool.dimensions, 
+            label = strings.getString(StringResourceId.DIMENSIONS),
+            value = tool.dimensions,
             onChange = { newValue -> tool = tool.copy(dimensions = newValue) }
         )
-        
+
         // Power Source - Dropdown
         DropDownField(
-            label = "Power Source",
+            label = strings.getString(StringResourceId.POWER_SOURCE),
             options = listOf("Electric", "Battery", "Manual", "Hybrid", "Pneumatic", "Hydraulic", "Solar", "Mechanical"),
             selectedValue = tool.powerSource,
             onChange = { newValue -> tool = tool.copy(powerSource = newValue) }
         )
-        
+
         // Fuel Type - Dropdown
         DropDownField(
-            label = "Fuel Type",
+            label = strings.getString(StringResourceId.FUEL_TYPE),
             options = listOf("Gasoline", "Diesel", "Electric"),
             selectedValue = tool.fuelType,
             onChange = { newValue -> tool = tool.copy(fuelType = newValue) }
         )
-        
+
         // Voltage - Regular field
         LabeledField(
-            label = "Voltage", 
-            value = tool.voltage, 
+            label = strings.getString(StringResourceId.VOLTAGE),
+            value = tool.voltage,
             onChange = { newValue -> tool = tool.copy(voltage = newValue) }
         )
-        
+
         // Rental Rate - Regular field
         OutlinedTextField(
             value = rentalRateText,
             onValueChange = { newValue -> rentalRateText = newValue },
-            label = { Text("Rental Rate (€)") },
+            label = { Text(strings.getString(StringResourceId.RENTAL_RATE_EURO)) },
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
         )
-        
+
         // Image URL - Regular field
         LabeledField(
-            label = "Image URL", 
-            value = tool.image, 
+            label = strings.getString(StringResourceId.IMAGE_URL),
+            value = tool.image,
             onChange = { newValue -> tool = tool.copy(image = newValue) }
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Buttons - different layout based on whether it's create or update
         if (isUpdate) {
             // Update screen has save and cancel buttons
@@ -168,23 +178,23 @@ fun AdminToolForm(
                     enabled = !isLoading && isFormValid,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Save")
+                    Text(strings.getString(StringResourceId.SAVE))
                 }
-                
+
                 Spacer(modifier = Modifier.width(8.dp))
-                
+
                 OutlinedButton(
                     onClick = onCancel,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Cancel")
+                    Text(strings.getString(StringResourceId.CANCEL))
                 }
             }
-            
+
             // Add delete button below save/cancel if we're in update mode
             if (onDelete != null) {
                 Spacer(modifier = Modifier.height(16.dp))
-                
+
                 Button(
                     onClick = onDelete,
                     colors = ButtonDefaults.buttonColors(
@@ -193,7 +203,7 @@ fun AdminToolForm(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Delete Tool")
+                    Text(strings.getString(StringResourceId.DELETE_TOOL))
                 }
             }
         } else {
@@ -212,7 +222,7 @@ fun AdminToolForm(
                     contentColor = Color.Black
                 )
             ) {
-                Text("Create")
+                Text(strings.getString(StringResourceId.CREATE))
             }
         }
     }

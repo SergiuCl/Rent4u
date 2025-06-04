@@ -18,6 +18,12 @@ class ToolRepository @Inject constructor() {
 
     suspend fun getToolById(id: String): Tool? {
         return try {
+            // Check for empty ID to prevent Firestore errors
+            if (id.isBlank()) {
+                Log.e("ToolRepository", "Cannot get tool with empty ID")
+                return null
+            }
+
             val document = Firebase.firestore.collection("tools").document(id).get().await()
             if (document.exists()) {
                 val tool = document.toTool()

@@ -18,8 +18,6 @@ class BookingRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth
 ) {
-    // Remove duplicate tool methods as they belong in ToolRepository
-    
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun bookTool(booking: Booking): Boolean {
         return try {

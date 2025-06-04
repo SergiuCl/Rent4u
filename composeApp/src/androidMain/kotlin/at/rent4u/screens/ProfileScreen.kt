@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,9 +32,18 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import at.rent4u.presentation.UserViewModel
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 
 @Composable
 fun ProfileScreen(navController: NavController) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val viewModel: UserViewModel = hiltViewModel()
 
     Scaffold(
@@ -64,7 +75,7 @@ fun ProfileScreen(navController: NavController) {
                     username = viewModel.getUserName() ?: ""
                 }
                 Text(
-                    text = "Logged in as $username",
+                    text = strings.getString(StringResourceId.LOGGED_IN_AS).format(username),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
@@ -89,7 +100,7 @@ fun ProfileScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text("My Bookings")
+                Text(strings.getString(StringResourceId.MY_BOOKINGS))
             }
 
             Button(
@@ -104,7 +115,7 @@ fun ProfileScreen(navController: NavController) {
                     contentColor = Color.White
                 )
             ) {
-                Text("View Profile")
+                Text(strings.getString(StringResourceId.VIEW_PROFILE))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -124,7 +135,7 @@ fun ProfileScreen(navController: NavController) {
                     contentColor = Color.Black
                 )
             ) {
-                Text("Logout")
+                Text(strings.getString(StringResourceId.LOGOUT))
             }
         }
     }

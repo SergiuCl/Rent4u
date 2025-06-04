@@ -34,12 +34,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.BookingViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -47,6 +49,7 @@ import java.time.YearMonth
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.Locale
+import at.rent4u.localization.LocalizedStringProvider
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -55,7 +58,13 @@ fun BookingScreen(
     navController: NavController,
     viewModel: BookingViewModel = hiltViewModel()
 ) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
     val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val tool by viewModel.tool.collectAsState()
     val bookedDates by viewModel.bookedDates.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -99,7 +108,10 @@ fun BookingScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            Text("Select a booking date", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = strings.getString(StringResourceId.SELECT_BOOKING_DATES),
+                style = MaterialTheme.typography.titleMedium
+            )
 
             Spacer(Modifier.height(16.dp))
 
@@ -128,7 +140,7 @@ fun BookingScreen(
                 enabled = selectedStartDate != null && selectedEndDate != null && !isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Confirm Booking")
+                Text(text = strings.getString(StringResourceId.CONFIRM_BOOKING),)
             }
 
             if (isLoading) {
@@ -164,12 +176,19 @@ fun CustomCalendarPicker(
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         // Header
         Row(
-            Modifier.fillMaxWidth().padding(8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("<", modifier = Modifier.clickable { currentMonth = currentMonth.minusMonths(1) })
             Text(
-                text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
+                text = "${
+                    currentMonth.month.getDisplayName(
+                        TextStyle.FULL,
+                        Locale.getDefault()
+                    )
+                } ${currentMonth.year}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -192,7 +211,9 @@ fun CustomCalendarPicker(
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             userScrollEnabled = false,
-            modifier = Modifier.height(300.dp).padding(8.dp)
+            modifier = Modifier
+                .height(300.dp)
+                .padding(8.dp)
         ) {
             itemsIndexed(days) { _, date ->
                 val isPast = date != null && date.isBefore(LocalDate.now())
