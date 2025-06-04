@@ -71,6 +71,7 @@ fun MyBookingsScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(strings.getString(StringResourceId.SHOW_PAST_BOOKINGS))
+
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -103,6 +104,7 @@ fun MyBookingsScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text =  if (showPastBookings) strings.getString(StringResourceId.NO_PAST_BOOKINGS) else strings.getString(StringResourceId.NO_ACTIVE_BOOKINGS),
+
 
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -157,6 +159,7 @@ fun MyBookingsScreen(
                                             )
                                         ) {
                                             Text(strings.getString(StringResourceId.CANCEL_BOOKING))
+
 
                                         }
                                     }
