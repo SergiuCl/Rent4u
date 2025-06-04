@@ -4,7 +4,6 @@
     <string name="welcome">Willkommen bei Rent4U</string>
     <string name="login">Anmelden</string>
     <string name="register">Registrieren</string>
-    <string name="email">E-Mail</string>
     <string name="password">Passwort</string>
     <string name="book_now">Jetzt buchen</string>
     <string name="book_tool">Werkzeug buchen</string>
@@ -73,6 +72,7 @@
 
     <!-- Profile screen -->
     <string name="details">Details</string>
+    <string name="edit_tool_details">Werkzeugdetails bearbeiten</string>
     <string name="logged_in_as">Angemeldet als %s</string>
     <string name="view_profile">Profil anzeigen</string>
     <string name="loading_profile">Profil wird geladen…</string>
@@ -124,7 +124,6 @@
 
     <!-- Dialog strings -->
     <string name="error">Fehler</string>
-    <string name="ok">OK</string>
     <string name="verification_email_sent">Bestätigungs-E-Mail gesendet</string>
     <string name="verification_email_message">Eine Bestätigungs-E-Mail wurde an Ihre E-Mail-Adresse gesendet. Bitte überprüfen Sie Ihren Posteingang und folgen Sie dem Link, um Ihre E-Mail zu verifizieren.</string>
     <string name="delete_user_confirmation">Konto löschen</string>

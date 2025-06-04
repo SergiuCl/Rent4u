@@ -96,9 +96,7 @@ fun AdminToolUpdateScreen(
                 // Use shared form component
                 AdminToolForm(
                     initialTool = toolState!!,
-                    title = strings.getString(StringResourceId.EDIT_TOOL) + strings.getString(
-                        StringResourceId.DETAILS
-                    ),
+                    title = strings.getString(StringResourceId.EDIT_TOOL_DETAILS),
                     isLoading = isLoading,
                     isUpdate = true,
                     onSave = { tool, rentalRateText ->

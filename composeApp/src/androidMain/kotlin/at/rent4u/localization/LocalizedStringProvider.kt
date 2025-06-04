@@ -80,6 +80,7 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
         StringResourceId.WEIGHT to R.string.weight,
         StringResourceId.DIMENSIONS to R.string.dimensions,
         StringResourceId.RENTAL_RATE to R.string.rental_rate,
+        StringResourceId.EDIT_TOOL_DETAILS to R.string.edit_tool_details,
         // My bookings screen
         StringResourceId.NO_ACTIVE_BOOKINGS to R.string.no_active_bookings,
         StringResourceId.BROWSE_TOOLS to R.string.browse_tools,

@@ -4,7 +4,6 @@
     <string name="welcome">Bine ați venit la Rent4U</string>
     <string name="login">Autentificare</string>
     <string name="register">Înregistrare</string>
-    <string name="email">E-mail</string>
     <string name="password">Parolă</string>
     <string name="book_now">Rezervă acum</string>
     <string name="book_tool">Rezervă unealta</string>
@@ -74,6 +73,7 @@
 
     <!-- Profile screen -->
     <string name="details">Detalii</string>
+    <string name="edit_tool_details">Editează detaliile uneltei</string>
     <string name="logged_in_as">Conectat ca %s</string>
     <string name="view_profile">Vezi profil</string>
     <string name="loading_profile">Se încarcă profilul…</string>
@@ -125,7 +125,6 @@
 
     <!-- Dialog strings -->
     <string name="error">Eroare</string>
-    <string name="ok">OK</string>
     <string name="verification_email_sent">E-mail de verificare trimis</string>
     <string name="verification_email_message">Un e-mail de verificare a fost trimis la adresa dvs. Vă rugăm să verificați căsuța poștală și să urmați link-ul pentru a vă verifica e-mailul.</string>
     <string name="delete_user_confirmation">Șterge contul</string>
@@ -140,7 +139,7 @@
     <string name="delete_entity">Șterge %1$s</string>
     <string name="delete_entity_confirmation">Sunteți sigur că doriți să ștergeți %1$s „%2$s”?</string>
     <string name="action_cannot_be_undone">Această acțiune nu poate fi anulată.</string>
-    <string name="type_yes_to_confirm">Tastați "yes" pentru a confirma ștergerea acestui %1$s:</string>
+    <string name="type_yes_to_confirm">Tastați \"yes\" pentru a confirma ștergerea acestui %1$s:</string>
 
     <!-- AdminToolForm -->
     <string name="availability_status">Stare disponibilitate</string>

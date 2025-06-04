@@ -5,7 +5,7 @@
     <string name="welcome">Welcome to Rent4U</string>
     <string name="login">Login</string>
     <string name="register">Register</string>
-    <string name="email">Email</string>
+    <string name="email" translatable="false">E-mail</string>
     <string name="password">Password</string>
     <string name="book_now">Book Now</string>
     <string name="book_tool">Book Tool</string>
@@ -67,7 +67,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="booking_date_range">From: %1$s To: %2$s</string>
-    <string name="details">Details</string>
+    <string name="edit_tool_details">Edit Tool Details</string>
 
     <!-- Profile screen -->
     <string name="logged_in_as">Logged in as %s</string>
@@ -121,7 +121,7 @@
 
     <!-- Dialog strings -->
     <string name="error">Error</string>
-    <string name="ok">OK</string>
+    <string name="ok" translatable="false">OK</string>
     <string name="verification_email_sent">Verification Email Sent</string>
     <string name="verification_email_message">A verification email has been sent to your email address. Please check your inbox and follow the link to verify your email.</string>
     <string name="delete_user_confirmation">Delete Account</string>
@@ -150,5 +150,6 @@
     <string name="book_this_tool">Book this Tool</string>
     <string name="edit_tool">Edit Tool</string>
     <string name="delete_tool_button">Delete Tool</string>
+    <string name="details">Details</string>
 </resources>
 

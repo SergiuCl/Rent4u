@@ -136,6 +136,7 @@ enum class StringResourceId {
     DELETE_TOOL_BUTTON,
     CREATE,
     DETAILS,
+    EDIT_TOOL_DETAILS,
 }
 
 expect class LocalizedStringProvider() : StringResource {
