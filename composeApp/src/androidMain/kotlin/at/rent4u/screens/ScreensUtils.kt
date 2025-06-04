@@ -36,10 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 
 
 @Composable
@@ -56,6 +60,12 @@ fun LoadingScreen() {
 
 @Composable
 fun BottomNavBar(navController: NavController) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
     val currentRoute = getCurrentRoute(navController)
 
     BottomAppBar(
@@ -209,9 +219,10 @@ fun DropDownField(
 
 @Composable
 fun LabelInputPair(label: String, value: String) {
-    Column(modifier = Modifier
-        .padding(bottom = 16.dp)
-        .fillMaxWidth()
+    Column(
+        modifier = Modifier
+            .padding(bottom = 16.dp)
+            .fillMaxWidth()
     ) {
         Text(text = label, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(4.dp))

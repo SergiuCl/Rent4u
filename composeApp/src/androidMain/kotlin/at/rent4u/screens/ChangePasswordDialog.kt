@@ -18,12 +18,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 
 @Composable
 fun ChangePasswordDialog(
     onDismiss: () -> Unit,
     onChangePassword: (currentPassword: String, newPassword: String) -> Unit
 ) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     var currentPassword by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -44,7 +55,7 @@ fun ChangePasswordDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change Password") },
+        title = { Text(strings.getString(StringResourceId.CHANGE_PASSWORD)) },
         text = {
             Column(
                 modifier = Modifier.padding(8.dp)
@@ -55,13 +66,13 @@ fun ChangePasswordDialog(
                         currentPassword = it
                         currentPasswordError = it.isEmpty()
                     },
-                    label = { Text("Current Password") },
+                    label = { Text(strings.getString(StringResourceId.CURRENT_PASSWORD)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
                     isError = currentPasswordError,
                     supportingText = {
                         if (currentPasswordError) {
-                            Text("Current password is required")
+                            Text(strings.getString(StringResourceId.CURRENT_PASSWORD_REQUIRED))
                         }
                     }
                 )
@@ -75,13 +86,13 @@ fun ChangePasswordDialog(
                         newPasswordError = it.length < 6 && it.isNotEmpty()
                         passwordsMatchError = confirmPassword.isNotEmpty() && it != confirmPassword
                     },
-                    label = { Text("New Password") },
+                    label = { Text(strings.getString(StringResourceId.NEW_PASSWORD)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
                     isError = newPasswordError,
                     supportingText = {
                         if (newPasswordError) {
-                            Text("Password must be at least 6 characters")
+                            Text(strings.getString(StringResourceId.PASSWORD_LENGTH_ERROR))
                         }
                     }
                 )
@@ -94,19 +105,19 @@ fun ChangePasswordDialog(
                         confirmPassword = it
                         passwordsMatchError = it.isNotEmpty() && it != newPassword
                     },
-                    label = { Text("Confirm New Password") },
+                    label = { Text(strings.getString(StringResourceId.CONFIRM_NEW_PASSWORD)) },
                     modifier = Modifier.fillMaxWidth(),
                     visualTransformation = PasswordVisualTransformation(),
                     isError = passwordsMatchError,
                     supportingText = {
                         if (passwordsMatchError) {
-                            Text("Passwords don't match")
+                            Text(strings.getString(StringResourceId.PASSWORDS_DONT_MATCH))
                         }
                     }
                 )
 
                 Text(
-                    "For security reasons, make sure your password is strong.",
+                    strings.getString(StringResourceId.PASSWORD_SECURITY_HINT),
                     modifier = Modifier.padding(top = 16.dp)
                 )
             }
@@ -116,7 +127,7 @@ fun ChangePasswordDialog(
                 onClick = { onChangePassword(currentPassword, newPassword) },
                 enabled = isFormValid
             ) {
-                Text("Change Password")
+                Text(strings.getString(StringResourceId.CHANGE_PASSWORD))
             }
         },
         dismissButton = {

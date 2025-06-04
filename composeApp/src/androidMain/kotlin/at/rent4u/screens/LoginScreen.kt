@@ -25,11 +25,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +40,13 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isEmailValid = validateEmail(email)
@@ -46,7 +56,6 @@ fun LoginScreen(navController: NavController) {
     val isLoading by viewModel.isLoading.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
     var keepLoggedIn by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     // Check if user is already logged in, if so navigate directly to ToolList
     LaunchedEffect(Unit) {
@@ -73,13 +82,13 @@ fun LoginScreen(navController: NavController) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Welcome Back", style = MaterialTheme.typography.headlineMedium)
+            Text(strings.getString(StringResourceId.WELCOME_BACK), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
+                label = { Text(strings.getString(StringResourceId.EMAIL)) },
                 singleLine = true
             )
 
@@ -88,7 +97,7 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text(strings.getString(StringResourceId.PASSWORD)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation()
             )
@@ -105,7 +114,7 @@ fun LoginScreen(navController: NavController) {
                     onCheckedChange = { keepLoggedIn = it }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Stay logged in")
+                Text(strings.getString(StringResourceId.STAY_LOGGED_IN))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -131,7 +140,7 @@ fun LoginScreen(navController: NavController) {
                     }
                 }
             }) {
-                Text("Login")
+                Text(strings.getString(StringResourceId.LOGIN))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -139,7 +148,7 @@ fun LoginScreen(navController: NavController) {
             TextButton(enabled = !isLoading, onClick = {
                 navController.navigate(Screen.Register.route)
             }) {
-                Text("Don't have an account? Register")
+                Text(strings.getString(StringResourceId.DONT_HAVE_ACCOUNT))
             }
         }
     }

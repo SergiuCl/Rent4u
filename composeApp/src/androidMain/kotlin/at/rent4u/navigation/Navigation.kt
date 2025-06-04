@@ -39,17 +39,14 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             route = Screen.ToolDetails.route,
             arguments = listOf(navArgument(ARG_TOOL_ID) { type = NavType.StringType })
         ) { backStackEntry ->
-            // ← This is where you extract toolId from nav args:
-            val toolId = backStackEntry.arguments
-                ?.getString(ARG_TOOL_ID)
-                ?: return@composable
-
+            val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: ""
             Log.d("NavGraph", "Navigated to ToolDetails with toolId = $toolId")
             ToolDetailsScreen(
                 toolId = toolId,
                 navController = navController,
-                onEditClick = { tool ->
+                onEditClick = {
                     Log.d("NavGraph", "Edit clicked for toolId = $toolId")
+                    // Pass the actual toolId directly
                     navController.navigate(Screen.AdminToolUpdate.createRoute(toolId))
                 }
             )
@@ -73,9 +70,13 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
             route = Screen.AdminToolUpdate.route,  // must be "admin_tool_update/{toolId}"
             arguments = listOf(navArgument(ARG_TOOL_ID) { type = NavType.StringType })
         ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: return@composable
-            Log.d("NavGraph", "Navigated to AdminToolUpdate with toolId = $id")
-            AdminToolUpdateScreen(toolId = id, navController = navController)
+            val toolId = backStackEntry.arguments?.getString(ARG_TOOL_ID) ?: ""
+            if (toolId.isBlank()) {
+                Log.e("NavGraph", "Empty toolId passed to AdminToolUpdate!")
+            } else {
+                Log.d("NavGraph", "Navigated to AdminToolUpdate with toolId = $toolId")
+            }
+            AdminToolUpdateScreen(toolId = toolId, navController = navController)
         }
 
         composable(Screen.MyBookings.route) {
@@ -114,3 +115,4 @@ fun Rent4uNavGraph(navController: NavHostController = rememberNavController()) {
         }
     }
 }
+

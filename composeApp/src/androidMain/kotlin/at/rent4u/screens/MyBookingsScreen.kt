@@ -14,10 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.model.Booking
 import at.rent4u.presentation.MyBookingsViewModel
 import coil.compose.AsyncImage
@@ -29,13 +32,18 @@ fun MyBookingsScreen(
     navController: NavController,
     viewModel: MyBookingsViewModel = hiltViewModel()
 ) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
+    val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val bookings = viewModel.userBookings.collectAsState()
     val tools = viewModel.bookedTools.collectAsState()
     var bookingToCancel by remember { mutableStateOf<Booking?>(null) }
 
-    val context = LocalContext.current
     val toastMessage by viewModel.toastMessage.collectAsState()
-
     val isLoading by viewModel.isLoading.collectAsState()
 
     var showPastBookings by remember { mutableStateOf(false) }
@@ -53,7 +61,7 @@ fun MyBookingsScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("My Bookings", style = MaterialTheme.typography.headlineMedium)
+            Text(strings.getString(StringResourceId.MY_BOOKINGS), style = MaterialTheme.typography.headlineMedium)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -62,7 +70,7 @@ fun MyBookingsScreen(
                     onCheckedChange = { showPastBookings = it }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Show past bookings")
+                Text(strings.getString(StringResourceId.SHOW_PAST_BOOKINGS))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -94,13 +102,14 @@ fun MyBookingsScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = if (showPastBookings) "No past bookings found." else "You currently have no active bookings. Book a tool to get started!",
+                            text =  if (showPastBookings) strings.getString(StringResourceId.NO_PAST_BOOKINGS) else strings.getString(StringResourceId.NO_ACTIVE_BOOKINGS),
+
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Button(onClick = { navController.navigate(Screen.ToolList.route) }) {
-                            Text("Browse Tools")
+                            Text(strings.getString(StringResourceId.BROWSE_TOOLS))
                         }
                     }
                 }
@@ -118,7 +127,7 @@ fun MyBookingsScreen(
                                 Row(modifier = Modifier.padding(16.dp)) {
                                     AsyncImage(
                                         model = tool.image,
-                                        contentDescription = "Tool Image",
+                                        contentDescription = strings.getString(StringResourceId.TOOL_IMAGE),
                                         modifier = Modifier
                                             .size(120.dp)
                                             .clip(RoundedCornerShape(8.dp))
@@ -131,24 +140,24 @@ fun MyBookingsScreen(
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(text = "${tool.type} (${tool.brand})", style = MaterialTheme.typography.titleMedium)
-                                        Text(text = "Model: ${tool.modelNumber}")
-                                        Text(text = "Rental: ${booking.totalAmount}€")
+                                        Text(text = "${strings.getString(StringResourceId.MODEL)}: ${tool.modelNumber}")
+                                        Text(text = "${strings.getString(StringResourceId.RENTAL_RATE)}: ${booking.totalAmount}€")
                                         Text(
-                                            text = "From: ${booking.startDate} To: ${booking.endDate}",
+                                            text = strings.getString(StringResourceId.BOOKING_DATE_RANGE).format(booking.startDate, booking.endDate),
                                             style = MaterialTheme.typography.bodySmall
                                         )
 
-                                        if (!showPastBookings || LocalDate.parse(booking.endDate).isAfter(LocalDate.now())) {
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Button(
-                                                onClick = { bookingToCancel = booking },
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = MaterialTheme.colorScheme.error,
-                                                    contentColor = MaterialTheme.colorScheme.onError
-                                                )
-                                            ) {
-                                                Text("Cancel Booking")
-                                            }
+                                        Spacer(modifier = Modifier.height(8.dp))
+
+                                        Button(
+                                            onClick = { bookingToCancel = booking },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.error,
+                                                contentColor = MaterialTheme.colorScheme.onError
+                                            )
+                                        ) {
+                                            Text(strings.getString(StringResourceId.CANCEL_BOOKING))
+
                                         }
                                     }
                                 }
@@ -167,19 +176,19 @@ fun MyBookingsScreen(
         bookingToCancel?.let { booking ->
             AlertDialog(
                 onDismissRequest = { bookingToCancel = null },
-                title = { Text("Confirm Cancellation") },
-                text = { Text("Are you sure you want to cancel this booking?") },
+                title = { Text(strings.getString(StringResourceId.CONFIRM_CANCELLATION)) },
+                text = { Text(strings.getString(StringResourceId.CANCELLATION_CONFIRMATION)) },
                 confirmButton = {
                     TextButton(onClick = {
                         viewModel.cancelBooking(booking)
                         bookingToCancel = null
                     }) {
-                        Text("Yes")
+                        Text(strings.getString(StringResourceId.YES))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { bookingToCancel = null }) {
-                        Text("No")
+                        Text(strings.getString(StringResourceId.NO))
                     }
                 }
             )

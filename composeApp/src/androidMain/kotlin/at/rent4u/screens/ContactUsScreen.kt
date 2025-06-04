@@ -6,10 +6,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import at.rent4u.localization.LocalizedStringProvider
+import at.rent4u.localization.StringResourceId
 import at.rent4u.presentation.ContactUsViewModel
 
 @Composable
@@ -17,7 +20,13 @@ fun ContactUsScreen(
     navController: NavController,
     viewModel: ContactUsViewModel = hiltViewModel()
 ) {
+    // Setup localization
+    val configuration = LocalConfiguration.current
     val context = LocalContext.current
+    val strings = remember(configuration) {
+        LocalizedStringProvider(context)
+    }
+
     val message by viewModel.message.collectAsState()
     val isSending by viewModel.isSending.collectAsState()
     val toastMessage by viewModel.toastMessage.collectAsState()
@@ -34,7 +43,7 @@ fun ContactUsScreen(
         ) {
             // Header
             Text(
-                text = "Contact Us",
+                text = strings.getString(StringResourceId.CONTACT_US),
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier
                     .align(Alignment.Start)
@@ -52,7 +61,7 @@ fun ContactUsScreen(
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Text(
-                    text = "If you have any questions, issues, or feedback, feel free to contact us using the form below. We’re here to help!",
+                    text = strings.getString(StringResourceId.CONTACT_INFO),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
@@ -64,7 +73,7 @@ fun ContactUsScreen(
             OutlinedTextField(
                 value = message,
                 onValueChange = { viewModel.updateMessage(it) },
-                label = { Text("Your Message") },
+                label = { Text(strings.getString(StringResourceId.YOUR_MESSAGE)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
@@ -85,7 +94,7 @@ fun ContactUsScreen(
                 },
                 enabled = message.isNotBlank() && !isSending
             ) {
-                Text("Send")
+                Text(strings.getString(StringResourceId.SEND))
             }
         }
 
