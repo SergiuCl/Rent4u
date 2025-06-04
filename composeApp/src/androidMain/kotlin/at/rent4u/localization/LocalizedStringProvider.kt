@@ -65,6 +65,7 @@ actual class LocalizedStringProvider constructor(private val context: Context) :
         StringResourceId.MIN_PRICE to R.string.min_price,
         StringResourceId.MAX_PRICE to R.string.max_price,
         StringResourceId.TOOL_IMAGE to R.string.tool_image,
+        StringResourceId.CREATE to R.string.create,
         // Tool details screen
         StringResourceId.TOOL_NOT_FOUND to R.string.tool_not_found,
         StringResourceId.EDIT_TOOL to R.string.edit_tool,
